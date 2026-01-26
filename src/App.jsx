@@ -1239,7 +1239,8 @@ try {
   setLeadSubmitted(true);
   setStep('results');
 }
-
+setSubmitting(false);
+};
   const resetForm = () => {
     setStep("welcome");
     setHasExisting(null);
