@@ -1225,12 +1225,11 @@ export default function VADisabilityCalculator() {
     };
 
     try {
-      // CONFIGURE YOUR WEBHOOK HERE:
-      await fetch("https://hooks.zapier.com/hooks/catch/26188750/uqgkpei/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(leadData),
-      });
+  await fetch('https://hooks.zapier.com/hooks/catch/26188750/uqgkpei/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(leadData)
+  });
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
       console.log("Lead data to submit:", leadData);
