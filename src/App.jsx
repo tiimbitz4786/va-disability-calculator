@@ -1225,7 +1225,7 @@ export default function VADisabilityCalculator() {
     };
 
 try {
-  const response = await fetch('https://hooks.zapier.com/hooks/catch/26188750/uqgkpei/', {
+  await fetch('https://hooks.zapier.com/hooks/catch/26188750/uqgkpei/', {
     method: 'POST',
     mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
