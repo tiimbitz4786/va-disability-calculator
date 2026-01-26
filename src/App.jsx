@@ -1224,25 +1224,21 @@ export default function VADisabilityCalculator() {
       source: "facebook_ad",
     };
 
-    try {
+try {
   await fetch('https://hooks.zapier.com/hooks/catch/26188750/uqgkpei/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(leadData)
   });
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Lead data to submit:", leadData);
-      setLeadSubmitted(true);
-      setStep("results");
-    } catch (error) {
-      console.error("Error submitting lead:", error);
-      alert(
-        "There was an error submitting your information. Please try again."
-      );
-    }
-    setSubmitting(false);
-  };
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  console.log('Lead data to submit:', leadData);
+  setLeadSubmitted(true);
+  setStep('results');
+} catch (error) {
+  console.error('Error submitting lead:', error);
+  alert('There was an error submitting your information. Please try again.');
+}
 
   const resetForm = () => {
     setStep("welcome");
