@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
+// Team photo - update this URL after uploading to your hosting
+const TEAM_PHOTO_URL = '/team-photo.jpg';
+
 // Facebook Pixel ID
 const FB_PIXEL_ID = '733972183061275';
 
@@ -1124,7 +1127,7 @@ export default function VACalculator() {
               {/* Attorney Photo */}
               <div style={{ marginBottom: '12px' }}>
                 <img 
-                  src="/team-photo.jpg" 
+                  src={TEAM_PHOTO_URL}
                   alt="Hiller Comerford Attorneys" 
                   style={{ 
                     width: '100%', 
