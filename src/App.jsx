@@ -1,5 +1,39 @@
 import React, { useState, useEffect } from 'react';
 
+// Facebook Pixel ID
+const FB_PIXEL_ID = '733972183061275';
+
+// Initialize Facebook Pixel
+const initFacebookPixel = () => {
+  if (window.fbq) return;
+  
+  (function(f,b,e,v,n,t,s) {
+    if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s);
+  })(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  
+  window.fbq('init', FB_PIXEL_ID);
+  window.fbq('track', 'PageView');
+};
+
+// Track Facebook events
+const trackFBEvent = (eventName, params = {}) => {
+  if (window.fbq) {
+    window.fbq('track', eventName, params);
+  }
+};
+
+// Track custom Facebook events
+const trackFBCustomEvent = (eventName, params = {}) => {
+  if (window.fbq) {
+    window.fbq('trackCustom', eventName, params);
+  }
+};
+
 // 2026 VA Compensation Rates
 const COMPENSATION_RATES = {
   0: 0, 10: 180.42, 20: 356.66,
@@ -132,6 +166,11 @@ export default function VACalculator() {
   const [sessionId] = useState(() => Date.now().toString(36) + Math.random().toString(36).substr(2));
   const [trackedSteps, setTrackedSteps] = useState(new Set());
 
+  // Initialize Facebook Pixel on mount
+  useEffect(() => {
+    initFacebookPixel();
+  }, []);
+
   // Track user progress through funnel
   const trackStep = async (stepName, extraData = {}) => {
     // Only track each step once per session
@@ -249,9 +288,23 @@ export default function VACalculator() {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       trackStep('5_all_questions_completed');
+      const res = calculateResults();
       trackStep('6_viewed_results', { 
-        projectedRating: calculateResults().projectedRating,
-        monthlyIncrease: calculateResults().monthlyIncrease.toFixed(2)
+        projectedRating: res.projectedRating,
+        monthlyIncrease: res.monthlyIncrease.toFixed(2)
+      });
+      // Facebook: Track as ViewContent with value
+      trackFBEvent('ViewContent', {
+        content_name: 'VA Calculator Results',
+        content_category: 'Calculator',
+        value: res.monthlyIncrease * 12,
+        currency: 'USD'
+      });
+      trackFBCustomEvent('ResultsViewed', {
+        current_rating: res.currentRating,
+        projected_rating: res.projectedRating,
+        monthly_increase: res.monthlyIncrease,
+        annual_increase: res.annualIncrease
       });
       setStep('results');
     }
@@ -282,6 +335,14 @@ export default function VACalculator() {
         body: JSON.stringify(leadData)
       });
       trackStep('8_lead_submitted');
+      
+      // Facebook: Track as Lead with value
+      trackFBEvent('Lead', {
+        content_name: 'VA Disability Case Review',
+        content_category: 'Lead Form',
+        value: res.annualIncrease,
+        currency: 'USD'
+      });
     } catch (e) {
       console.error('Submit error:', e);
     }
@@ -400,7 +461,11 @@ export default function VACalculator() {
             </div>
 
             <button 
-              onClick={() => { trackStep('1_started'); setStep('current-rating'); }}
+              onClick={() => { 
+                trackStep('1_started'); 
+                trackFBCustomEvent('CalculatorStarted');
+                setStep('current-rating'); 
+              }}
               style={{
                 width: '100%',
                 padding: '18px',
@@ -482,7 +547,11 @@ export default function VACalculator() {
             </div>
 
             <button 
-              onClick={() => { trackStep('2_rating_selected', { rating: currentRating }); setStep('conditions'); }}
+              onClick={() => { 
+                trackStep('2_rating_selected', { rating: currentRating }); 
+                trackFBCustomEvent('RatingSelected', { current_rating: currentRating });
+                setStep('conditions'); 
+              }}
               style={{
                 width: '100%',
                 padding: '16px',
@@ -616,7 +685,15 @@ export default function VACalculator() {
                 ← Back
               </button>
               <button 
-                onClick={() => { trackStep('3_conditions_selected'); setCurrentQuestionIndex(0); setStep('questions'); }}
+                onClick={() => { 
+                  trackStep('3_conditions_selected'); 
+                  trackFBCustomEvent('ConditionsSelected', { 
+                    num_conditions: selectedConditions.length,
+                    conditions: selectedConditions.map(c => c.name).join(', ')
+                  });
+                  setCurrentQuestionIndex(0); 
+                  setStep('questions'); 
+                }}
                 disabled={!canProceedFromConditions}
                 style={{
                   flex: 1,
@@ -833,47 +910,32 @@ export default function VACalculator() {
                     <div style={{ 
                       background: '#FEF3C7', 
                       borderRadius: '12px', 
-                      padding: '16px',
+                      padding: '20px',
                       marginBottom: '20px',
                       border: '2px solid #F59E0B',
                       textAlign: 'center'
                     }}>
                       <div style={{ fontSize: '24px', marginBottom: '8px' }}>🛡️</div>
-                      <div style={{ fontWeight: '800', color: '#92400E', fontSize: '18px', marginBottom: '4px' }}>
+                      <div style={{ fontWeight: '800', color: '#92400E', fontSize: '18px', marginBottom: '12px' }}>
                         No Fee Guarantee
                       </div>
-                      <div style={{ color: '#92400E', fontSize: '14px' }}>
-                        You will <strong>never</strong> owe us anything.<br/>
-                        If we win, the VA pays us directly — not you.
+                      <div style={{ color: '#92400E', fontSize: '15px', lineHeight: 1.6 }}>
+                        <strong>The longer you wait, the more money you lose.</strong> Back pay only counts from the day you file.
                       </div>
-                    </div>
-
-                    <h3 style={{ fontSize: '18px', fontWeight: '700', color: theme.grayDark, marginBottom: '12px', textAlign: 'center' }}>
-                      Ready to Get the Benefits You Earned?
-                    </h3>
-                    <p style={{ color: theme.gray, fontSize: '14px', marginBottom: '20px', textAlign: 'center' }}>
-                      Get a <strong>free case review</strong> from our VA disability experts.
-                    </p>
-                    
-                    <div style={{ 
-                      background: theme.greenLight, 
-                      borderRadius: '10px', 
-                      padding: '12px 16px',
-                      marginBottom: '20px'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.greenDark, fontSize: '14px', marginBottom: '4px' }}>
-                        <span>✓</span> <span><strong>100% Free</strong> case review</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.greenDark, fontSize: '14px', marginBottom: '4px' }}>
-                        <span>✓</span> <span><strong>$0 out of pocket</strong> — ever</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.greenDark, fontSize: '14px' }}>
-                        <span>✓</span> <span><strong>VA pays us</strong> if we win — not you</span>
+                      <div style={{ color: '#92400E', fontSize: '15px', marginTop: '12px' }}>
+                        We do all the work. You pay $0 - win or lose.
                       </div>
                     </div>
 
                     <button 
-                      onClick={() => { trackStep('7_clicked_get_review'); setShowLeadForm(true); }}
+                      onClick={() => { 
+                        trackStep('7_clicked_get_review'); 
+                        trackFBEvent('InitiateCheckout', {
+                          content_name: 'VA Disability Case Review',
+                          content_category: 'Lead Form'
+                        });
+                        setShowLeadForm(true); 
+                      }}
                       style={{
                         width: '100%',
                         padding: '18px',
@@ -886,7 +948,7 @@ export default function VACalculator() {
                         cursor: 'pointer'
                       }}
                     >
-                      Get My Free Case Review →
+                      Connect With Our Team →
                     </button>
 
                     <button 
@@ -1053,16 +1115,27 @@ export default function VACalculator() {
                 background: '#FEF3C7',
                 padding: '8px 16px',
                 borderRadius: '20px',
-                marginBottom: '12px'
+                marginBottom: '16px'
               }}>
                 <span>🛡️</span>
                 <span style={{ color: '#92400E', fontWeight: '600' }}>No Fee Guarantee</span>
               </div>
-              <div style={{ marginBottom: '8px' }}>Trusted by thousands of veterans</div>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', opacity: 0.6 }}>
-                <span>⭐⭐⭐⭐⭐</span>
-                <span>BBB Accredited</span>
+              
+              {/* Attorney Photo */}
+              <div style={{ marginBottom: '12px' }}>
+                <img 
+                  src="/team-photo.jpg" 
+                  alt="Hiller Comerford Attorneys" 
+                  style={{ 
+                    width: '100%', 
+                    maxWidth: '350px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                  }} 
+                />
               </div>
+              
+              <div>Trusted by thousands of veterans</div>
             </div>
           </div>
         )}
