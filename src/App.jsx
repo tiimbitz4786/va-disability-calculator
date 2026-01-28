@@ -378,9 +378,37 @@ export default function VACalculator() {
       minHeight: '100vh', 
       background: `linear-gradient(135deg, ${theme.purpleLight} 0%, ${theme.white} 100%)`,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      padding: '16px'
+      padding: '16px',
+      position: 'relative'
     }}>
-      <div style={{ maxWidth: '500px', margin: '0 auto' }}>
+      {/* Background with attorneys - visible on larger screens */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '300px',
+        backgroundImage: `url(${TEAM_PHOTO_URL})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat',
+        zIndex: 0,
+        opacity: 0.9
+      }} />
+      
+      {/* Gradient overlay to fade the background */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '350px',
+        background: 'linear-gradient(to bottom, rgba(245,240,255,1) 0%, rgba(245,240,255,0) 30%)',
+        zIndex: 1,
+        pointerEvents: 'none'
+      }} />
+
+      <div style={{ maxWidth: '500px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
         
         {/* Header - Always visible */}
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
@@ -911,22 +939,30 @@ export default function VACalculator() {
                 {!showLeadForm ? (
                   <>
                     <div style={{ 
-                      background: '#FEF3C7', 
+                      background: 'white', 
                       borderRadius: '12px', 
                       padding: '20px',
                       marginBottom: '20px',
-                      border: '2px solid #F59E0B',
-                      textAlign: 'center'
+                      border: `2px solid ${theme.grayLight}`
                     }}>
-                      <div style={{ fontSize: '24px', marginBottom: '8px' }}>🛡️</div>
-                      <div style={{ fontWeight: '800', color: '#92400E', fontSize: '18px', marginBottom: '12px' }}>
-                        No Fee Guarantee
-                      </div>
-                      <div style={{ color: '#92400E', fontSize: '15px', lineHeight: 1.6 }}>
-                        <strong>The longer you wait, the more money you lose.</strong> Back pay only counts from the day you file.
-                      </div>
-                      <div style={{ color: '#92400E', fontSize: '15px', marginTop: '12px' }}>
-                        We do all the work. You pay $0 - win or lose.
+                      <h3 style={{ fontSize: '20px', fontWeight: '700', color: theme.grayDark, marginBottom: '12px' }}>
+                        Want Us to Handle This?
+                      </h3>
+                      <p style={{ color: theme.gray, fontSize: '15px', lineHeight: 1.6, marginBottom: '16px' }}>
+                        We deal with the VA so you don't have to. Paperwork, evidence, appeals - all of it.
+                      </p>
+                      <div style={{ 
+                        background: '#FEF3C7', 
+                        borderRadius: '8px', 
+                        padding: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                      }}>
+                        <span style={{ fontSize: '20px' }}>🛡️</span>
+                        <span style={{ color: '#92400E', fontSize: '14px' }}>
+                          <strong>You pay nothing.</strong> If we win, the VA pays us directly.
+                        </span>
                       </div>
                     </div>
 
@@ -951,7 +987,7 @@ export default function VACalculator() {
                         cursor: 'pointer'
                       }}
                     >
-                      Connect With Our Team →
+                      Have Someone Call Me →
                     </button>
 
                     <button 
@@ -972,39 +1008,28 @@ export default function VACalculator() {
                   </>
                 ) : (
                   <>
-                    <h3 style={{ fontSize: '18px', fontWeight: '700', color: theme.grayDark, marginBottom: '16px', textAlign: 'center' }}>
-                      Get Your Free Case Review
+                    <h3 style={{ fontSize: '20px', fontWeight: '700', color: theme.grayDark, marginBottom: '8px', textAlign: 'center' }}>
+                      We'll Call You
                     </h3>
+                    <p style={{ fontSize: '14px', color: theme.gray, marginBottom: '20px', textAlign: 'center' }}>
+                      Usually within a few hours during business hours.
+                    </p>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
-                      <div style={{ display: 'flex', gap: '12px' }}>
-                        <input
-                          type="text"
-                          placeholder="First Name"
-                          value={leadInfo.firstName}
-                          onChange={e => setLeadInfo({ ...leadInfo, firstName: e.target.value })}
-                          style={{
-                            flex: 1,
-                            padding: '14px',
-                            border: '2px solid #E5E7EB',
-                            borderRadius: '10px',
-                            fontSize: '16px'
-                          }}
-                        />
-                        <input
-                          type="text"
-                          placeholder="Last Name"
-                          value={leadInfo.lastName}
-                          onChange={e => setLeadInfo({ ...leadInfo, lastName: e.target.value })}
-                          style={{
-                            flex: 1,
-                            padding: '14px',
-                            border: '2px solid #E5E7EB',
-                            borderRadius: '10px',
-                            fontSize: '16px'
-                          }}
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        placeholder="Your Name"
+                        value={leadInfo.firstName}
+                        onChange={e => setLeadInfo({ ...leadInfo, firstName: e.target.value })}
+                        style={{
+                          width: '100%',
+                          padding: '16px',
+                          border: '2px solid #E5E7EB',
+                          borderRadius: '10px',
+                          fontSize: '16px',
+                          boxSizing: 'border-box'
+                        }}
+                      />
                       <input
                         type="tel"
                         placeholder="Phone Number"
@@ -1012,23 +1037,11 @@ export default function VACalculator() {
                         onChange={e => setLeadInfo({ ...leadInfo, phone: e.target.value })}
                         style={{
                           width: '100%',
-                          padding: '14px',
+                          padding: '16px',
                           border: '2px solid #E5E7EB',
                           borderRadius: '10px',
-                          fontSize: '16px'
-                        }}
-                      />
-                      <input
-                        type="email"
-                        placeholder="Email Address"
-                        value={leadInfo.email}
-                        onChange={e => setLeadInfo({ ...leadInfo, email: e.target.value })}
-                        style={{
-                          width: '100%',
-                          padding: '14px',
-                          border: '2px solid #E5E7EB',
-                          borderRadius: '10px',
-                          fontSize: '16px'
+                          fontSize: '16px',
+                          boxSizing: 'border-box'
                         }}
                       />
                     </div>
@@ -1048,7 +1061,7 @@ export default function VACalculator() {
                         cursor: (!leadInfo.firstName || !leadInfo.phone || isSubmitting) ? 'not-allowed' : 'pointer'
                       }}
                     >
-                      {isSubmitting ? 'Submitting...' : 'Request My Free Review →'}
+                      {isSubmitting ? 'Submitting...' : 'Call Me →'}
                     </button>
 
                     <button 
@@ -1078,7 +1091,7 @@ export default function VACalculator() {
                     }}>
                       <span style={{ fontSize: '18px' }}>🛡️</span>
                       <span style={{ fontSize: '12px', color: '#92400E' }}>
-                        <strong>Remember:</strong> You'll never owe us anything. If we win, the VA pays us directly.
+                        <strong>No Fee Guarantee.</strong> You pay nothing - ever. If we win, the VA pays us.
                       </span>
                     </div>
                   </>
@@ -1122,20 +1135,6 @@ export default function VACalculator() {
               }}>
                 <span>🛡️</span>
                 <span style={{ color: '#92400E', fontWeight: '600' }}>No Fee Guarantee</span>
-              </div>
-              
-              {/* Attorney Photo */}
-              <div style={{ marginBottom: '12px' }}>
-                <img 
-                  src={TEAM_PHOTO_URL}
-                  alt="Hiller Comerford Attorneys" 
-                  style={{ 
-                    width: '100%', 
-                    maxWidth: '350px',
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                  }} 
-                />
               </div>
               
               <div>Trusted by thousands of veterans</div>
