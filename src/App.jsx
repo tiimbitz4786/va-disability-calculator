@@ -1058,33 +1058,42 @@ export default function VACalculator() {
                       />
                       <input
                         type="tel"
-                        placeholder="Phone Number"
+                        placeholder="Phone Number (10 digits)"
                         value={leadInfo.phone}
-                        onChange={e => setLeadInfo({ ...leadInfo, phone: e.target.value })}
+                        onChange={e => {
+                          // Only allow digits, strip everything else
+                          const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          setLeadInfo({ ...leadInfo, phone: digits });
+                        }}
                         style={{
                           width: '100%',
                           padding: '16px',
-                          border: '2px solid #E5E7EB',
+                          border: `2px solid ${leadInfo.phone && leadInfo.phone.length !== 10 && leadInfo.phone.length > 0 ? '#EF4444' : '#E5E7EB'}`,
                           borderRadius: '10px',
                           fontSize: '16px',
                           boxSizing: 'border-box'
                         }}
                       />
+                      {leadInfo.phone && leadInfo.phone.length > 0 && leadInfo.phone.length !== 10 && (
+                        <div style={{ color: '#EF4444', fontSize: '13px', marginTop: '-8px' }}>
+                          Please enter a 10-digit phone number ({leadInfo.phone.length}/10)
+                        </div>
+                      )}
                     </div>
 
                     <button 
                       onClick={submitLead}
-                      disabled={!leadInfo.firstName || !leadInfo.phone || isSubmitting}
+                      disabled={!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting}
                       style={{
                         width: '100%',
                         padding: '18px',
-                        background: (!leadInfo.firstName || !leadInfo.phone || isSubmitting) ? '#D1D5DB' : theme.green,
+                        background: (!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting) ? '#D1D5DB' : theme.green,
                         color: theme.white,
                         border: 'none',
                         borderRadius: '12px',
                         fontSize: '18px',
                         fontWeight: '700',
-                        cursor: (!leadInfo.firstName || !leadInfo.phone || isSubmitting) ? 'not-allowed' : 'pointer'
+                        cursor: (!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting) ? 'not-allowed' : 'pointer'
                       }}
                     >
                       {isSubmitting ? 'Submitting...' : 'Call Me →'}
