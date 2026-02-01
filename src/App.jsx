@@ -450,10 +450,9 @@ export default function VACalculator() {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: `linear-gradient(135deg, ${theme.purpleLight} 0%, ${theme.white} 100%)`,
+      background: `linear-gradient(180deg, ${theme.purple} 0%, ${theme.purpleLight} 40%, ${theme.white} 100%)`,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       padding: '16px',
-      paddingTop: '0',
       position: 'relative'
     }}>
       <div style={{ maxWidth: '500px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
@@ -461,10 +460,11 @@ export default function VACalculator() {
         {/* Team Photo Banner at Top - only show on welcome screen */}
         {step === 'welcome' && (
           <div style={{
-            width: 'calc(100% + 32px)',
-            marginLeft: '-16px',
+            width: '100%',
             marginBottom: '0',
-            overflow: 'hidden'
+            borderRadius: '20px 20px 0 0',
+            overflow: 'hidden',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
           }}>
             <img 
               src={TEAM_PHOTO_URL} 
