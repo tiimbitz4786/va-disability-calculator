@@ -455,51 +455,25 @@ export default function VACalculator() {
       padding: '16px',
       position: 'relative'
     }}>
-      {/* Background with attorneys - visible on larger screens */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '400px',
-        backgroundImage: `url(${TEAM_PHOTO_URL})`,
-        backgroundSize: 'contain',
-        backgroundPosition: 'center bottom',
-        backgroundRepeat: 'no-repeat',
-        zIndex: 0,
-        opacity: 0.95
-      }} />
-      
-      {/* Gradient overlay to fade the background */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '450px',
-        background: 'linear-gradient(to bottom, rgba(245,240,255,1) 0%, rgba(245,240,255,0) 25%)',
-        zIndex: 1,
-        pointerEvents: 'none'
-      }} />
-
       <div style={{ maxWidth: '500px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
         
-        {/* Header - Always visible */}
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', 
-              background: theme.grayDark, 
-              borderRadius: '8px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <span style={{ color: theme.gray, fontWeight: '800', fontSize: '16px' }}>HC</span>
-            </div>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: '700', color: theme.purple, fontSize: '14px', lineHeight: 1.1 }}>HILLER COMERFORD</div>
-              <div style={{ fontSize: '9px', color: theme.green, letterSpacing: '0.5px' }}>INJURY & DISABILITY LAW</div>
-            </div>
-          </div>
+        {/* Team Photo Banner at Top */}
+        <div style={{
+          width: '100%',
+          marginBottom: '16px',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+        }}>
+          <img 
+            src={TEAM_PHOTO_URL} 
+            alt="Hiller Comerford Attorneys"
+            style={{
+              width: '100%',
+              height: 'auto',
+              display: 'block'
+            }}
+          />
         </div>
 
         {/* ============ WELCOME ============ */}
