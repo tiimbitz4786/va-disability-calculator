@@ -6,6 +6,45 @@ const TEAM_PHOTO_URL = '/team-photo.jpg';
 // Facebook Pixel ID
 const FB_PIXEL_ID = '733972183061275';
 
+// Rotating Testimonials
+const TESTIMONIALS = [
+  {
+    quote: "He took me from 10% to 100% in a short amount of time. Their entire staff fought ruthlessly to get me the back pay I deserved.",
+    name: "Marcus M.",
+    detail: "Army Veteran (Iraq)"
+  },
+  {
+    quote: "After years of denials from the VA, they helped me get full service connection. I highly recommend them to any veterans struggling with a VA claim.",
+    name: "Mike M.",
+    detail: "Veteran"
+  },
+  {
+    quote: "After 15 years of fighting with the VA, I received my back pay and 100% rating. Trust me, they are worth the call to talk to.",
+    name: "Tom C.",
+    detail: "Veteran"
+  },
+  {
+    quote: "They worked on my claim for almost 3 years constantly getting me increases until they got me to 100%. First class operation.",
+    name: "James",
+    detail: "Veteran"
+  },
+  {
+    quote: "This Team has been a Godsend, they took care of me as part of their Family. Very attentive and very Professional. I highly recommend 110%.",
+    name: "Andrew D.",
+    detail: "Veteran"
+  },
+  {
+    quote: "I tried to navigate the VA system alone and all I ended up with was being angry and frustrated with all the denial letters. They got me to 100%.",
+    name: "Patrick L.",
+    detail: "Veteran"
+  },
+  {
+    quote: "The countless hours and dedication they put in and direct communication with me was unparalleled to anyone I've ever worked with.",
+    name: "Rocky G.",
+    detail: "Veteran"
+  }
+];
+
 // Initialize Facebook Pixel
 const initFacebookPixel = () => {
   if (window.fbq) return;
@@ -170,6 +209,15 @@ export default function VACalculator() {
   const [trackedSteps, setTrackedSteps] = useState(new Set());
   const [showExitPopup, setShowExitPopup] = useState(false);
   const [exitPopupShown, setExitPopupShown] = useState(false);
+  const [testimonialIndex, setTestimonialIndex] = useState(0);
+
+  // Rotate testimonials every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTestimonialIndex(prev => (prev + 1) % TESTIMONIALS.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Initialize Facebook Pixel on mount
   useEffect(() => {
@@ -501,7 +549,7 @@ export default function VACalculator() {
               background: '#FEF3C7', 
               borderRadius: '12px', 
               padding: '16px',
-              marginBottom: '24px',
+              marginBottom: '20px',
               border: '2px solid #F59E0B'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -513,6 +561,49 @@ export default function VACalculator() {
                   <div style={{ color: '#92400E', fontSize: '13px' }}>
                     You'll never owe us a penny. If we win, the VA pays us directly.
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Rotating Testimonial on Welcome Screen */}
+            <div style={{ 
+              background: theme.grayLight, 
+              borderRadius: '12px', 
+              padding: '16px',
+              marginBottom: '24px',
+              minHeight: '85px'
+            }}>
+              <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+                {[1,2,3,4,5].map(i => <span key={i} style={{ color: '#FBBF24', fontSize: '14px' }}>★</span>)}
+              </div>
+              <p style={{ 
+                fontSize: '13px', 
+                color: theme.grayDark, 
+                fontStyle: 'italic',
+                lineHeight: 1.5,
+                marginBottom: '8px'
+              }}>
+                "{TESTIMONIALS[testimonialIndex].quote}"
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '12px', color: theme.gray, fontWeight: '600' }}>
+                  — {TESTIMONIALS[testimonialIndex].name}, {TESTIMONIALS[testimonialIndex].detail}
+                </div>
+                {/* Dots indicator */}
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  {TESTIMONIALS.map((_, i) => (
+                    <div 
+                      key={i}
+                      onClick={() => setTestimonialIndex(i)}
+                      style={{ 
+                        width: '5px', 
+                        height: '5px', 
+                        borderRadius: '50%', 
+                        background: i === testimonialIndex ? theme.purple : '#D1D5DB',
+                        cursor: 'pointer'
+                      }} 
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -933,99 +1024,131 @@ export default function VACalculator() {
               )}
             </div>
 
-            {/* 5-Year Value Card */}
-            {results.fiveYearValue > 0 && (
-              <div style={{ 
-                background: theme.white,
-                borderRadius: '16px', 
-                padding: '20px',
-                marginBottom: '16px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ fontSize: '40px' }}>💰</div>
-                  <div>
-                    <div style={{ color: theme.gray, fontSize: '14px' }}>5-Year Value of Increase</div>
-                    <div style={{ fontSize: '28px', fontWeight: '800', color: theme.green }}>
-                      ${results.fiveYearValue.toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* CTA Section */}
             {!leadSubmitted ? (
               <div style={{ 
                 background: theme.white,
                 borderRadius: '16px', 
-                padding: '24px',
+                padding: '20px',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
               }}>
                 {!showLeadForm ? (
                   <>
+                    {/* Compact Urgency + CTA */}
                     <div style={{ 
-                      background: 'white', 
+                      background: `linear-gradient(135deg, ${theme.purple}, ${theme.purpleDark})`,
                       borderRadius: '12px', 
                       padding: '20px',
-                      marginBottom: '20px',
-                      border: `2px solid ${theme.grayLight}`
+                      marginBottom: '16px',
+                      color: 'white',
+                      textAlign: 'center'
                     }}>
-                      <h3 style={{ fontSize: '20px', fontWeight: '700', color: theme.grayDark, marginBottom: '12px' }}>
-                        Want Us to Handle This?
-                      </h3>
-                      <p style={{ color: theme.gray, fontSize: '15px', lineHeight: 1.6, marginBottom: '16px' }}>
-                        We deal with the VA so you don't have to. Paperwork, evidence, appeals - all of it.
-                      </p>
+                      {/* Urgency line */}
                       <div style={{ 
-                        background: '#FEF3C7', 
-                        borderRadius: '8px', 
-                        padding: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px'
+                        fontSize: '13px', 
+                        marginBottom: '12px',
+                        opacity: 0.95
                       }}>
-                        <span style={{ fontSize: '20px' }}>🛡️</span>
-                        <span style={{ color: '#92400E', fontSize: '14px' }}>
-                          <strong>You pay nothing.</strong> If we win, the VA pays us directly.
-                        </span>
+                        ⚠️ Waiting 6 months costs you <strong>${(results.monthlyIncrease * 6).toFixed(0)}</strong> in back pay
                       </div>
+
+                      <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '8px' }}>
+                        Let Us Fight For You
+                      </h3>
+                      
+                      {/* No Fee - inline */}
+                      <div style={{ fontSize: '14px', marginBottom: '16px', opacity: 0.95 }}>
+                        🛡️ <strong>No Fee Guarantee</strong> — You pay $0. If we win, the VA pays us.
+                      </div>
+
+                      <button 
+                        onClick={() => { 
+                          trackStep('7_clicked_get_review'); 
+                          trackFBEvent('InitiateCheckout', {
+                            content_name: 'VA Disability Case Review',
+                            content_category: 'Lead Form'
+                          });
+                          setShowLeadForm(true); 
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '16px',
+                          background: theme.green,
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '10px',
+                          fontSize: '17px',
+                          fontWeight: '700',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Have Us Call You — Free Consult →
+                      </button>
                     </div>
 
-                    <button 
-                      onClick={() => { 
-                        trackStep('7_clicked_get_review'); 
-                        trackFBEvent('InitiateCheckout', {
-                          content_name: 'VA Disability Case Review',
-                          content_category: 'Lead Form'
-                        });
-                        setShowLeadForm(true); 
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '18px',
-                        background: theme.green,
-                        color: theme.white,
-                        border: 'none',
-                        borderRadius: '12px',
-                        fontSize: '18px',
-                        fontWeight: '700',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Have Someone Call Me →
-                    </button>
+                    {/* Rotating Testimonial */}
+                    <div style={{ 
+                      background: theme.grayLight, 
+                      borderRadius: '10px', 
+                      padding: '14px',
+                      minHeight: '90px',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                        <div style={{ fontSize: '24px' }}>⭐</div>
+                        <div style={{ 
+                          transition: 'opacity 0.3s ease',
+                          opacity: 1 
+                        }}>
+                          <p style={{ 
+                            fontSize: '13px', 
+                            color: theme.grayDark, 
+                            fontStyle: 'italic',
+                            lineHeight: 1.5,
+                            marginBottom: '6px'
+                          }}>
+                            "{TESTIMONIALS[testimonialIndex].quote}"
+                          </p>
+                          <div style={{ fontSize: '12px', color: theme.gray, fontWeight: '600' }}>
+                            — {TESTIMONIALS[testimonialIndex].name}, {TESTIMONIALS[testimonialIndex].detail}
+                          </div>
+                        </div>
+                      </div>
+                      {/* Dots indicator */}
+                      <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        gap: '6px', 
+                        marginTop: '10px' 
+                      }}>
+                        {TESTIMONIALS.map((_, i) => (
+                          <div 
+                            key={i}
+                            onClick={() => setTestimonialIndex(i)}
+                            style={{ 
+                              width: '6px', 
+                              height: '6px', 
+                              borderRadius: '50%', 
+                              background: i === testimonialIndex ? theme.purple : '#D1D5DB',
+                              cursor: 'pointer',
+                              transition: 'background 0.3s ease'
+                            }} 
+                          />
+                        ))}
+                      </div>
+                    </div>
 
                     <button 
                       onClick={() => setStep('welcome')}
                       style={{
                         width: '100%',
                         marginTop: '12px',
-                        padding: '12px',
+                        padding: '10px',
                         background: 'transparent',
                         color: theme.gray,
                         border: 'none',
-                        fontSize: '14px',
+                        fontSize: '13px',
                         cursor: 'pointer'
                       }}
                     >
@@ -1034,14 +1157,14 @@ export default function VACalculator() {
                   </>
                 ) : (
                   <>
-                    <h3 style={{ fontSize: '20px', fontWeight: '700', color: theme.grayDark, marginBottom: '8px', textAlign: 'center' }}>
-                      We'll Call You
+                    <h3 style={{ fontSize: '18px', fontWeight: '700', color: theme.grayDark, marginBottom: '6px', textAlign: 'center' }}>
+                      We'll Call You Soon
                     </h3>
-                    <p style={{ fontSize: '14px', color: theme.gray, marginBottom: '20px', textAlign: 'center' }}>
+                    <p style={{ fontSize: '13px', color: theme.gray, marginBottom: '16px', textAlign: 'center' }}>
                       Usually within a few hours during business hours.
                     </p>
                     
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
                       <input
                         type="text"
                         placeholder="Your Name"
@@ -1049,7 +1172,7 @@ export default function VACalculator() {
                         onChange={e => setLeadInfo({ ...leadInfo, firstName: e.target.value })}
                         style={{
                           width: '100%',
-                          padding: '16px',
+                          padding: '14px',
                           border: '2px solid #E5E7EB',
                           borderRadius: '10px',
                           fontSize: '16px',
@@ -1061,13 +1184,12 @@ export default function VACalculator() {
                         placeholder="Phone Number (10 digits)"
                         value={leadInfo.phone}
                         onChange={e => {
-                          // Only allow digits, strip everything else
                           const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
                           setLeadInfo({ ...leadInfo, phone: digits });
                         }}
                         style={{
                           width: '100%',
-                          padding: '16px',
+                          padding: '14px',
                           border: `2px solid ${leadInfo.phone && leadInfo.phone.length !== 10 && leadInfo.phone.length > 0 ? '#EF4444' : '#E5E7EB'}`,
                           borderRadius: '10px',
                           fontSize: '16px',
@@ -1075,8 +1197,8 @@ export default function VACalculator() {
                         }}
                       />
                       {leadInfo.phone && leadInfo.phone.length > 0 && leadInfo.phone.length !== 10 && (
-                        <div style={{ color: '#EF4444', fontSize: '13px', marginTop: '-8px' }}>
-                          Please enter a 10-digit phone number ({leadInfo.phone.length}/10)
+                        <div style={{ color: '#EF4444', fontSize: '12px', marginTop: '-6px' }}>
+                          Please enter 10 digits ({leadInfo.phone.length}/10)
                         </div>
                       )}
                     </div>
@@ -1086,29 +1208,29 @@ export default function VACalculator() {
                       disabled={!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting}
                       style={{
                         width: '100%',
-                        padding: '18px',
+                        padding: '16px',
                         background: (!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting) ? '#D1D5DB' : theme.green,
                         color: theme.white,
                         border: 'none',
-                        borderRadius: '12px',
-                        fontSize: '18px',
+                        borderRadius: '10px',
+                        fontSize: '17px',
                         fontWeight: '700',
                         cursor: (!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting) ? 'not-allowed' : 'pointer'
                       }}
                     >
-                      {isSubmitting ? 'Submitting...' : 'Call Me →'}
+                      {isSubmitting ? 'Submitting...' : 'Request Free Consult →'}
                     </button>
 
                     <button 
                       onClick={() => setShowLeadForm(false)}
                       style={{
                         width: '100%',
-                        marginTop: '12px',
-                        padding: '12px',
+                        marginTop: '10px',
+                        padding: '10px',
                         background: 'transparent',
                         color: theme.gray,
                         border: 'none',
-                        fontSize: '14px',
+                        fontSize: '13px',
                         cursor: 'pointer'
                       }}
                     >
@@ -1116,17 +1238,17 @@ export default function VACalculator() {
                     </button>
 
                     <div style={{ 
-                      marginTop: '16px', 
-                      padding: '12px', 
+                      marginTop: '12px', 
+                      padding: '10px', 
                       background: '#FEF3C7', 
                       borderRadius: '8px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px'
                     }}>
-                      <span style={{ fontSize: '18px' }}>🛡️</span>
-                      <span style={{ fontSize: '12px', color: '#92400E' }}>
-                        <strong>No Fee Guarantee.</strong> You pay nothing - ever. If we win, the VA pays us.
+                      <span style={{ fontSize: '16px' }}>🛡️</span>
+                      <span style={{ fontSize: '11px', color: '#92400E' }}>
+                        <strong>No Fee Guarantee.</strong> You pay nothing. If we win, the VA pays us.
                       </span>
                     </div>
                   </>
