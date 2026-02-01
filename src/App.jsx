@@ -461,13 +461,13 @@ export default function VACalculator() {
         bottom: 0,
         left: 0,
         right: 0,
-        height: '300px',
+        height: '400px',
         backgroundImage: `url(${TEAM_PHOTO_URL})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top',
+        backgroundSize: 'contain',
+        backgroundPosition: 'center bottom',
         backgroundRepeat: 'no-repeat',
         zIndex: 0,
-        opacity: 0.9
+        opacity: 0.95
       }} />
       
       {/* Gradient overlay to fade the background */}
@@ -476,8 +476,8 @@ export default function VACalculator() {
         bottom: 0,
         left: 0,
         right: 0,
-        height: '350px',
-        background: 'linear-gradient(to bottom, rgba(245,240,255,1) 0%, rgba(245,240,255,0) 30%)',
+        height: '450px',
+        background: 'linear-gradient(to bottom, rgba(245,240,255,1) 0%, rgba(245,240,255,0) 25%)',
         zIndex: 1,
         pointerEvents: 'none'
       }} />
