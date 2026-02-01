@@ -453,36 +453,39 @@ export default function VACalculator() {
       background: `linear-gradient(135deg, ${theme.purpleLight} 0%, ${theme.white} 100%)`,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       padding: '16px',
+      paddingTop: '0',
       position: 'relative'
     }}>
       <div style={{ maxWidth: '500px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
         
-        {/* Team Photo Banner at Top */}
-        <div style={{
-          width: '100%',
-          marginBottom: '16px',
-          borderRadius: '16px',
-          overflow: 'hidden',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
-        }}>
-          <img 
-            src={TEAM_PHOTO_URL} 
-            alt="Hiller Comerford Attorneys"
-            style={{
-              width: '100%',
-              height: 'auto',
-              display: 'block'
-            }}
-          />
-        </div>
+        {/* Team Photo Banner at Top - only show on welcome screen */}
+        {step === 'welcome' && (
+          <div style={{
+            width: 'calc(100% + 32px)',
+            marginLeft: '-16px',
+            marginBottom: '0',
+            overflow: 'hidden'
+          }}>
+            <img 
+              src={TEAM_PHOTO_URL} 
+              alt="Hiller Comerford Attorneys"
+              style={{
+                width: '100%',
+                height: 'auto',
+                display: 'block'
+              }}
+            />
+          </div>
+        )}
 
         {/* ============ WELCOME ============ */}
         {step === 'welcome' && (
           <div style={{ 
             background: theme.white, 
-            borderRadius: '20px', 
+            borderRadius: '0 0 20px 20px',
             padding: '28px 24px',
-            boxShadow: '0 10px 40px rgba(93,58,142,0.15)'
+            boxShadow: '0 10px 40px rgba(93,58,142,0.15)',
+            marginTop: '0'
           }}>
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
               <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎖️</div>
