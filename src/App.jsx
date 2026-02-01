@@ -225,10 +225,21 @@ export default function VACalculator() {
   }, []);
 
   // Track user progress through funnel
+  // ONLY sends to Zapier for key events: viewed_results and lead_submission
+  // Other events are tracked locally and via Facebook Pixel only
   const trackStep = async (stepName, extraData = {}) => {
     // Only track each step once per session
     if (trackedSteps.has(stepName)) return;
     setTrackedSteps(prev => new Set([...prev, stepName]));
+
+    // Only send these key events to Zapier to save on zap costs
+    const zapierEvents = ['6_viewed_results'];
+    
+    if (!zapierEvents.includes(stepName)) {
+      // Still track locally, just don't send to Zapier
+      console.log('Step tracked locally:', stepName);
+      return;
+    }
 
     const trackingData = {
       type: 'funnel_tracking',
@@ -253,32 +264,10 @@ export default function VACalculator() {
     }
   };
 
-  // Track when user leaves the page
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      const lastStep = step === 'questions' 
-        ? `questions_${currentQuestionIndex + 1}_of_${selectedConditions.length}`
-        : step;
-      
-      // Use sendBeacon for reliable tracking on page exit
-      const data = JSON.stringify({
-        type: 'exit_tracking',
-        sessionId,
-        exitStep: lastStep,
-        timestamp: new Date().toISOString(),
-        completedLead: leadSubmitted,
-        conditionsSelected: selectedConditions.length
-      });
-      
-      navigator.sendBeacon && navigator.sendBeacon(
-        'https://hooks.zapier.com/hooks/catch/26188750/uqgkpei/',
-        data
-      );
-    };
+  // Exit tracking removed to save Zapier costs
+  // Facebook Pixel still tracks page exits automatically
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [step, currentQuestionIndex, selectedConditions, leadSubmitted, sessionId]);
+  const currentQuestion = selectedConditions[currentQuestionIndex];
 
   // Calculate results
   const calculateResults = () => {
@@ -1410,6 +1399,51 @@ export default function VACalculator() {
               🛡️ <strong>No Fee Guarantee</strong> - You pay nothing. Ever.
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Floating Contact Button - shows on all pages except when lead form is open or submitted */}
+      {!showLeadForm && !leadSubmitted && step !== 'results' && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 100,
+          width: '100%',
+          maxWidth: '500px',
+          padding: '0 16px',
+          boxSizing: 'border-box'
+        }}>
+          <button
+            onClick={() => {
+              trackStep('contact_button_clicked');
+              trackFBEvent('InitiateCheckout', {
+                content_name: 'Contact Button',
+                content_category: 'VA Disability'
+              });
+              setStep('results');
+              setShowLeadForm(true);
+            }}
+            style={{
+              width: '100%',
+              padding: '16px 24px',
+              background: theme.green,
+              color: 'white',
+              border: 'none',
+              borderRadius: '50px',
+              fontSize: '16px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              boxShadow: '0 4px 20px rgba(34, 197, 94, 0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
+          >
+            <span>📞</span> Contact Us — Free Consultation
+          </button>
         </div>
       )}
     </div>
