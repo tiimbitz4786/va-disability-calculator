@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 // Team photo - update this URL after uploading to your hosting
-const TEAM_PHOTO_URL = '/team-photo.jpg';
+const TEAM_PHOTO_URL = '/team-photo1.jpg';
 
 // Facebook Pixel ID
 const FB_PIXEL_ID = '733972183061275';
