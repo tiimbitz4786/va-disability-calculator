@@ -233,7 +233,8 @@ export default function VACalculator() {
     setTrackedSteps(prev => new Set([...prev, stepName]));
 
     // Only send these key events to Zapier to save on zap costs
-    const zapierEvents = ['6_viewed_results'];
+    // 1_started = total sessions, 6_viewed_results = saw results, lead_submission = actual leads
+    const zapierEvents = ['1_started', '6_viewed_results'];
     
     if (!zapierEvents.includes(stepName)) {
       // Still track locally, just don't send to Zapier
