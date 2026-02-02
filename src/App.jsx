@@ -268,8 +268,6 @@ export default function VACalculator() {
   // Exit tracking removed to save Zapier costs
   // Facebook Pixel still tracks page exits automatically
 
-  const currentQuestion = selectedConditions[currentQuestionIndex];
-
   // Calculate results
   const calculateResults = () => {
     const newRatings = selectedConditions.map(cond => {
