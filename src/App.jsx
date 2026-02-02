@@ -1,3 +1,5 @@
+// Version 2 - Lead Gate Update
+
 import React, { useState, useEffect } from 'react';
 
 // Team photo - update this URL after uploading to your hosting
