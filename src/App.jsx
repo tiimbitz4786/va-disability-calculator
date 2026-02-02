@@ -355,25 +355,8 @@ export default function VACalculator() {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       trackStep('5_all_questions_completed');
-      const res = calculateResults();
-      trackStep('6_viewed_results', { 
-        projectedRating: res.projectedRating,
-        monthlyIncrease: res.monthlyIncrease.toFixed(2)
-      });
-      // Facebook: Track as ViewContent with value
-      trackFBEvent('ViewContent', {
-        content_name: 'VA Calculator Results',
-        content_category: 'Calculator',
-        value: res.monthlyIncrease * 12,
-        currency: 'USD'
-      });
-      trackFBCustomEvent('ResultsViewed', {
-        current_rating: res.currentRating,
-        projected_rating: res.projectedRating,
-        monthly_increase: res.monthlyIncrease,
-        annual_increase: res.annualIncrease
-      });
-      setStep('results');
+      // Go to lead gate instead of directly to results
+      setStep('lead-gate');
     }
   };
 
@@ -403,6 +386,12 @@ export default function VACalculator() {
       });
       trackStep('8_lead_submitted');
       
+      // Track viewing results after lead submission
+      trackStep('6_viewed_results', { 
+        projectedRating: res.projectedRating,
+        monthlyIncrease: res.monthlyIncrease.toFixed(2)
+      });
+      
       // Facebook: Track as Lead with value
       trackFBEvent('Lead', {
         content_name: 'VA Disability Case Review',
@@ -417,6 +406,8 @@ export default function VACalculator() {
     setLeadSubmitted(true);
     setShowLeadForm(false);
     setIsSubmitting(false);
+    // Show results after lead submission
+    setStep('results');
   };
 
   const canProceedFromConditions = selectedConditions.length > 0 && 
@@ -939,6 +930,162 @@ export default function VACalculator() {
           </div>
         )}
 
+        {/* ============ LEAD GATE ============ */}
+        {step === 'lead-gate' && (
+          <div style={{ 
+            background: theme.white, 
+            borderRadius: '20px', 
+            padding: '28px 24px',
+            boxShadow: '0 10px 40px rgba(93,58,142,0.15)'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎉</div>
+              <h2 style={{ 
+                fontSize: '22px', 
+                fontWeight: '800', 
+                color: theme.grayDark,
+                marginBottom: '8px',
+                lineHeight: 1.2
+              }}>
+                Great News — You May Qualify!
+              </h2>
+              <p style={{ color: theme.gray, fontSize: '15px', lineHeight: 1.5 }}>
+                Based on your answers, we've calculated your potential rating increase. Enter your info to see your results.
+              </p>
+            </div>
+
+            {/* Teaser */}
+            <div style={{ 
+              background: theme.greenLight, 
+              borderRadius: '12px', 
+              padding: '16px',
+              marginBottom: '20px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '14px', color: theme.greenDark, marginBottom: '4px' }}>Your results are ready!</div>
+              <div style={{ fontSize: '24px', fontWeight: '800', color: theme.green }}>
+                See Your Potential Increase →
+              </div>
+            </div>
+
+            {/* Lead Form */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+              <input
+                type="text"
+                placeholder="Your Name"
+                value={leadInfo.firstName}
+                onChange={e => setLeadInfo({ ...leadInfo, firstName: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  border: '2px solid #E5E7EB',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+              />
+              <input
+                type="tel"
+                placeholder="Phone Number (10 digits)"
+                value={leadInfo.phone}
+                onChange={e => {
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setLeadInfo({ ...leadInfo, phone: digits });
+                }}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  border: `2px solid ${leadInfo.phone && leadInfo.phone.length !== 10 && leadInfo.phone.length > 0 ? '#EF4444' : '#E5E7EB'}`,
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+              />
+              {leadInfo.phone && leadInfo.phone.length > 0 && leadInfo.phone.length !== 10 && (
+                <div style={{ color: '#EF4444', fontSize: '13px', marginTop: '-8px' }}>
+                  Please enter 10 digits ({leadInfo.phone.length}/10)
+                </div>
+              )}
+            </div>
+
+            <button 
+              onClick={submitLead}
+              disabled={!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting}
+              style={{
+                width: '100%',
+                padding: '18px',
+                background: (!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting) ? '#D1D5DB' : theme.green,
+                color: theme.white,
+                border: 'none',
+                borderRadius: '12px',
+                fontSize: '18px',
+                fontWeight: '700',
+                cursor: (!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting) ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {isSubmitting ? 'Loading...' : 'Show My Results →'}
+            </button>
+
+            {/* No Fee Guarantee */}
+            <div style={{ 
+              marginTop: '16px', 
+              padding: '12px', 
+              background: '#FEF3C7', 
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span style={{ fontSize: '18px' }}>🛡️</span>
+              <span style={{ fontSize: '12px', color: '#92400E' }}>
+                <strong>No Fee Guarantee.</strong> You pay nothing. If we win, the VA pays us.
+              </span>
+            </div>
+
+            {/* Testimonial */}
+            <div style={{ 
+              marginTop: '16px',
+              background: theme.grayLight, 
+              borderRadius: '10px', 
+              padding: '14px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{ fontSize: '24px' }}>⭐</div>
+                <div>
+                  <p style={{ 
+                    fontSize: '13px', 
+                    color: theme.grayDark, 
+                    fontStyle: 'italic',
+                    lineHeight: 1.5,
+                    marginBottom: '6px'
+                  }}>
+                    "{TESTIMONIALS[testimonialIndex].quote}"
+                  </p>
+                  <div style={{ fontSize: '12px', color: theme.gray, fontWeight: '600' }}>
+                    — {TESTIMONIALS[testimonialIndex].name}, {TESTIMONIALS[testimonialIndex].detail}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setStep('questions')}
+              style={{
+                width: '100%',
+                marginTop: '12px',
+                padding: '10px',
+                background: 'transparent',
+                color: theme.gray,
+                border: 'none',
+                fontSize: '13px',
+                cursor: 'pointer'
+              }}
+            >
+              ← Back to questions
+            </button>
+          </div>
+        )}
+
         {/* ============ RESULTS ============ */}
         {step === 'results' && results && (
           <div>
@@ -991,255 +1138,24 @@ export default function VACalculator() {
               )}
             </div>
 
-            {/* CTA Section */}
-            {!leadSubmitted ? (
-              <div style={{ 
-                background: theme.white,
-                borderRadius: '16px', 
-                padding: '20px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-              }}>
-                {!showLeadForm ? (
-                  <>
-                    {/* Compact Urgency + CTA */}
-                    <div style={{ 
-                      background: `linear-gradient(135deg, ${theme.purple}, ${theme.purpleDark})`,
-                      borderRadius: '12px', 
-                      padding: '20px',
-                      marginBottom: '16px',
-                      color: 'white',
-                      textAlign: 'center'
-                    }}>
-                      {/* Urgency line */}
-                      <div style={{ 
-                        fontSize: '13px', 
-                        marginBottom: '12px',
-                        opacity: 0.95
-                      }}>
-                        ⚠️ Waiting 6 months costs you <strong>${(results.monthlyIncrease * 6).toFixed(0)}</strong> in back pay
-                      </div>
-
-                      <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '8px' }}>
-                        Let Us Fight For You
-                      </h3>
-                      
-                      {/* No Fee - inline */}
-                      <div style={{ fontSize: '14px', marginBottom: '16px', opacity: 0.95 }}>
-                        🛡️ <strong>No Fee Guarantee</strong> — You pay $0. If we win, the VA pays us.
-                      </div>
-
-                      <button 
-                        onClick={() => { 
-                          trackStep('7_clicked_get_review'); 
-                          trackFBEvent('InitiateCheckout', {
-                            content_name: 'VA Disability Case Review',
-                            content_category: 'Lead Form'
-                          });
-                          setShowLeadForm(true); 
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '16px',
-                          background: theme.green,
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '10px',
-                          fontSize: '17px',
-                          fontWeight: '700',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Have Us Call You — Free Consult →
-                      </button>
-                    </div>
-
-                    {/* Rotating Testimonial */}
-                    <div style={{ 
-                      background: theme.grayLight, 
-                      borderRadius: '10px', 
-                      padding: '14px',
-                      minHeight: '90px',
-                      position: 'relative',
-                      overflow: 'hidden'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                        <div style={{ fontSize: '24px' }}>⭐</div>
-                        <div style={{ 
-                          transition: 'opacity 0.3s ease',
-                          opacity: 1 
-                        }}>
-                          <p style={{ 
-                            fontSize: '13px', 
-                            color: theme.grayDark, 
-                            fontStyle: 'italic',
-                            lineHeight: 1.5,
-                            marginBottom: '6px'
-                          }}>
-                            "{TESTIMONIALS[testimonialIndex].quote}"
-                          </p>
-                          <div style={{ fontSize: '12px', color: theme.gray, fontWeight: '600' }}>
-                            — {TESTIMONIALS[testimonialIndex].name}, {TESTIMONIALS[testimonialIndex].detail}
-                          </div>
-                        </div>
-                      </div>
-                      {/* Dots indicator */}
-                      <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        gap: '6px', 
-                        marginTop: '10px' 
-                      }}>
-                        {TESTIMONIALS.map((_, i) => (
-                          <div 
-                            key={i}
-                            onClick={() => setTestimonialIndex(i)}
-                            style={{ 
-                              width: '6px', 
-                              height: '6px', 
-                              borderRadius: '50%', 
-                              background: i === testimonialIndex ? theme.purple : '#D1D5DB',
-                              cursor: 'pointer',
-                              transition: 'background 0.3s ease'
-                            }} 
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    <button 
-                      onClick={() => setStep('welcome')}
-                      style={{
-                        width: '100%',
-                        marginTop: '12px',
-                        padding: '10px',
-                        background: 'transparent',
-                        color: theme.gray,
-                        border: 'none',
-                        fontSize: '13px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Start Over
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <h3 style={{ fontSize: '18px', fontWeight: '700', color: theme.grayDark, marginBottom: '6px', textAlign: 'center' }}>
-                      We'll Call You Soon
-                    </h3>
-                    <p style={{ fontSize: '13px', color: theme.gray, marginBottom: '16px', textAlign: 'center' }}>
-                      Usually within a few hours during business hours.
-                    </p>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
-                      <input
-                        type="text"
-                        placeholder="Your Name"
-                        value={leadInfo.firstName}
-                        onChange={e => setLeadInfo({ ...leadInfo, firstName: e.target.value })}
-                        style={{
-                          width: '100%',
-                          padding: '14px',
-                          border: '2px solid #E5E7EB',
-                          borderRadius: '10px',
-                          fontSize: '16px',
-                          boxSizing: 'border-box'
-                        }}
-                      />
-                      <input
-                        type="tel"
-                        placeholder="Phone Number (10 digits)"
-                        value={leadInfo.phone}
-                        onChange={e => {
-                          const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-                          setLeadInfo({ ...leadInfo, phone: digits });
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '14px',
-                          border: `2px solid ${leadInfo.phone && leadInfo.phone.length !== 10 && leadInfo.phone.length > 0 ? '#EF4444' : '#E5E7EB'}`,
-                          borderRadius: '10px',
-                          fontSize: '16px',
-                          boxSizing: 'border-box'
-                        }}
-                      />
-                      {leadInfo.phone && leadInfo.phone.length > 0 && leadInfo.phone.length !== 10 && (
-                        <div style={{ color: '#EF4444', fontSize: '12px', marginTop: '-6px' }}>
-                          Please enter 10 digits ({leadInfo.phone.length}/10)
-                        </div>
-                      )}
-                    </div>
-
-                    <button 
-                      onClick={submitLead}
-                      disabled={!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting}
-                      style={{
-                        width: '100%',
-                        padding: '16px',
-                        background: (!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting) ? '#D1D5DB' : theme.green,
-                        color: theme.white,
-                        border: 'none',
-                        borderRadius: '10px',
-                        fontSize: '17px',
-                        fontWeight: '700',
-                        cursor: (!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting) ? 'not-allowed' : 'pointer'
-                      }}
-                    >
-                      {isSubmitting ? 'Submitting...' : 'Request Free Consult →'}
-                    </button>
-
-                    <button 
-                      onClick={() => setShowLeadForm(false)}
-                      style={{
-                        width: '100%',
-                        marginTop: '10px',
-                        padding: '10px',
-                        background: 'transparent',
-                        color: theme.gray,
-                        border: 'none',
-                        fontSize: '13px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      ← Back
-                    </button>
-
-                    <div style={{ 
-                      marginTop: '12px', 
-                      padding: '10px', 
-                      background: '#FEF3C7', 
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <span style={{ fontSize: '16px' }}>🛡️</span>
-                      <span style={{ fontSize: '11px', color: '#92400E' }}>
-                        <strong>No Fee Guarantee.</strong> You pay nothing. If we win, the VA pays us.
-                      </span>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div style={{ 
-                background: theme.greenLight,
-                borderRadius: '16px', 
-                padding: '24px',
-                textAlign: 'center'
-              }}>
-                <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
-                <h3 style={{ fontSize: '20px', fontWeight: '700', color: theme.greenDark, marginBottom: '8px' }}>
-                  Thank You, {leadInfo.firstName}!
-                </h3>
-                <p style={{ color: theme.greenDark, fontSize: '15px', marginBottom: '16px' }}>
-                  One of our VA disability experts will contact you within 24 hours to discuss your case.
-                </p>
-                <p style={{ color: theme.greenDark, fontSize: '14px' }}>
-                  <strong>Questions?</strong> Call us at <a href="tel:1-866-445-5375" style={{ color: theme.greenDark }}>1-866-HILLER LAW</a>
-                </p>
-              </div>
-            )}
+            {/* Thank You & Next Steps */}
+            <div style={{ 
+              background: theme.greenLight,
+              borderRadius: '16px', 
+              padding: '24px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: theme.greenDark, marginBottom: '8px' }}>
+                Thank You, {leadInfo.firstName}!
+              </h3>
+              <p style={{ color: theme.greenDark, fontSize: '15px', marginBottom: '16px' }}>
+                One of our VA disability experts will contact you within 24 hours to discuss your case and help you get the benefits you've earned.
+              </p>
+              <p style={{ color: theme.greenDark, fontSize: '14px' }}>
+                <strong>Questions?</strong> Call us at <a href="tel:1-866-445-5375" style={{ color: theme.greenDark }}>1-866-HILLER LAW</a>
+              </p>
+            </div>
 
             {/* Trust Badges */}
             <div style={{ 
@@ -1403,50 +1319,6 @@ export default function VACalculator() {
         </div>
       )}
 
-      {/* Floating Contact Button - shows on all pages except when lead form is open or submitted */}
-      {!showLeadForm && !leadSubmitted && step !== 'results' && (
-        <div style={{
-          position: 'fixed',
-          bottom: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 100,
-          width: '100%',
-          maxWidth: '500px',
-          padding: '0 16px',
-          boxSizing: 'border-box'
-        }}>
-          <button
-            onClick={() => {
-              trackStep('contact_button_clicked');
-              trackFBEvent('InitiateCheckout', {
-                content_name: 'Contact Button',
-                content_category: 'VA Disability'
-              });
-              setStep('results');
-              setShowLeadForm(true);
-            }}
-            style={{
-              width: '100%',
-              padding: '16px 24px',
-              background: theme.green,
-              color: 'white',
-              border: 'none',
-              borderRadius: '50px',
-              fontSize: '16px',
-              fontWeight: '700',
-              cursor: 'pointer',
-              boxShadow: '0 4px 20px rgba(34, 197, 94, 0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
-            }}
-          >
-            <span>📞</span> Contact Us — Free Consultation
-          </button>
-        </div>
-      )}
     </div>
   );
 }
