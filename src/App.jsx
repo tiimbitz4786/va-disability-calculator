@@ -972,9 +972,23 @@ export default function VACalculator() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
               <input
                 type="text"
-                placeholder="Your Name"
+                placeholder="First Name"
                 value={leadInfo.firstName}
                 onChange={e => setLeadInfo({ ...leadInfo, firstName: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  border: '2px solid #E5E7EB',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Last Name"
+                value={leadInfo.lastName}
+                onChange={e => setLeadInfo({ ...leadInfo, lastName: e.target.value })}
                 style={{
                   width: '100%',
                   padding: '16px',
@@ -1010,17 +1024,17 @@ export default function VACalculator() {
 
             <button 
               onClick={submitLead}
-              disabled={!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting}
+              disabled={!leadInfo.firstName || !leadInfo.lastName || leadInfo.phone.length !== 10 || isSubmitting}
               style={{
                 width: '100%',
                 padding: '18px',
-                background: (!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting) ? '#D1D5DB' : theme.green,
+                background: (!leadInfo.firstName || !leadInfo.lastName || leadInfo.phone.length !== 10 || isSubmitting) ? '#D1D5DB' : theme.green,
                 color: theme.white,
                 border: 'none',
                 borderRadius: '12px',
                 fontSize: '18px',
                 fontWeight: '700',
-                cursor: (!leadInfo.firstName || leadInfo.phone.length !== 10 || isSubmitting) ? 'not-allowed' : 'pointer'
+                cursor: (!leadInfo.firstName || !leadInfo.lastName || leadInfo.phone.length !== 10 || isSubmitting) ? 'not-allowed' : 'pointer'
               }}
             >
               {isSubmitting ? 'Loading...' : 'Show My Results →'}
