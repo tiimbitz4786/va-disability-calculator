@@ -1,211 +1,76 @@
-// Version 2 - Lead Gate Update
-
 import React, { useState, useEffect } from 'react';
+import { theme } from './constants/theme';
+import { CONDITIONS, TESTIMONIALS } from './constants/conditions';
+import { calculateResults } from './utils/calculations';
+import { initFacebookPixel, trackFBEvent, trackFBCustomEvent } from './utils/tracking';
+import { isValidEmail, isValidPhone } from './utils/validation';
 
-// Team photo - update this URL after uploading to your hosting
-const TEAM_PHOTO_URL = '/team-photo1.jpg';
+// Screens
+import WelcomeScreen from './components/screens/WelcomeScreen';
+import CurrentRatingScreen from './components/screens/CurrentRatingScreen';
+import ZeroReassureScreen from './components/screens/ZeroReassureScreen';
+import AppliedBeforeScreen from './components/screens/AppliedBeforeScreen';
+import DeniedReassureScreen from './components/screens/DeniedReassureScreen';
+import ToldIneligibleScreen from './components/screens/ToldIneligibleScreen';
+import FirstTimeReassureScreen from './components/screens/FirstTimeReassureScreen';
+import UnsureReassureScreen from './components/screens/UnsureReassureScreen';
+import ActiveDutyScreen from './components/screens/ActiveDutyScreen';
+import ThankServiceScreen from './components/screens/ThankServiceScreen';
+import DischargeStatusScreen from './components/screens/DischargeStatusScreen';
+import CurrentConditionScreen from './components/screens/CurrentConditionScreen';
+import ServiceConnectionScreen from './components/screens/ServiceConnectionScreen';
+import FirstNameScreen from './components/screens/FirstNameScreen';
+import HundredPercentScreen from './components/screens/HundredPercentScreen';
+import RatedReassureScreen from './components/screens/RatedReassureScreen';
+import CurrentRatedConditionsScreen from './components/screens/CurrentRatedConditionsScreen';
+import EnterCurrentRatingsScreen from './components/screens/EnterCurrentRatingsScreen';
+import IncreasedRatingPromptScreen from './components/screens/IncreasedRatingPromptScreen';
+import SelectIncreasedConditionsScreen from './components/screens/SelectIncreasedConditionsScreen';
+import NewClaimsPromptScreen from './components/screens/NewClaimsPromptScreen';
+import ConditionsScreen from './components/screens/ConditionsScreen';
+import QuestionsScreen from './components/screens/QuestionsScreen';
+import LeadGateScreen from './components/screens/LeadGateScreen';
+import ResultsScreen from './components/screens/ResultsScreen';
+import ExitPopup from './components/ExitPopup';
+import DeadEndScreen from './components/shared/DeadEndScreen';
 
-// Facebook Pixel ID
-const FB_PIXEL_ID = '733972183061275';
-
-// Rotating Testimonials
-const TESTIMONIALS = [
-  {
-    quote: "He took me from 10% to 100% in a short amount of time. Their entire staff fought ruthlessly to get me the back pay I deserved.",
-    name: "Marcus M.",
-    detail: "Army Veteran (Iraq)"
-  },
-  {
-    quote: "After years of denials from the VA, they helped me get full service connection. I highly recommend them to any veterans struggling with a VA claim.",
-    name: "Mike M.",
-    detail: "Veteran"
-  },
-  {
-    quote: "After 15 years of fighting with the VA, I received my back pay and 100% rating. Trust me, they are worth the call to talk to.",
-    name: "Tom C.",
-    detail: "Veteran"
-  },
-  {
-    quote: "They worked on my claim for almost 3 years constantly getting me increases until they got me to 100%. First class operation.",
-    name: "James",
-    detail: "Veteran"
-  },
-  {
-    quote: "This Team has been a Godsend, they took care of me as part of their Family. Very attentive and very Professional. I highly recommend 110%.",
-    name: "Andrew D.",
-    detail: "Veteran"
-  },
-  {
-    quote: "I tried to navigate the VA system alone and all I ended up with was being angry and frustrated with all the denial letters. They got me to 100%.",
-    name: "Patrick L.",
-    detail: "Veteran"
-  },
-  {
-    quote: "The countless hours and dedication they put in and direct communication with me was unparalleled to anyone I've ever worked with.",
-    name: "Rocky G.",
-    detail: "Veteran"
-  }
-];
-
-// Initialize Facebook Pixel
-const initFacebookPixel = () => {
-  if (window.fbq) return;
-  
-  (function(f,b,e,v,n,t,s) {
-    if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s);
-  })(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
-  
-  window.fbq('init', FB_PIXEL_ID);
-  window.fbq('track', 'PageView');
-};
-
-// Track Facebook events
-const trackFBEvent = (eventName, params = {}) => {
-  if (window.fbq) {
-    window.fbq('track', eventName, params);
-  }
-};
-
-// Track custom Facebook events
-const trackFBCustomEvent = (eventName, params = {}) => {
-  if (window.fbq) {
-    window.fbq('trackCustom', eventName, params);
-  }
-};
-
-// 2026 VA Compensation Rates
-const COMPENSATION_RATES = {
-  0: 0, 10: 180.42, 20: 356.66,
-  30: { alone: 552.47, spouse: 617.47, child: 596.47, childSpouse: 666.47 },
-  40: { alone: 795.84, spouse: 882.84, child: 853.84, childSpouse: 947.84 },
-  50: { alone: 1132.90, spouse: 1241.90, child: 1205.90, childSpouse: 1322.90 },
-  60: { alone: 1435.02, spouse: 1566.02, child: 1523.02, childSpouse: 1663.02 },
-  70: { alone: 1808.45, spouse: 1961.45, child: 1910.45, childSpouse: 2074.45 },
-  80: { alone: 2102.15, spouse: 2277.15, child: 2219.15, childSpouse: 2406.15 },
-  90: { alone: 2362.30, spouse: 2559.30, child: 2494.30, childSpouse: 2704.30 },
-  100: { alone: 3938.58, spouse: 4158.17, child: 4085.43, childSpouse: 4318.99 }
-};
-
-const CONDITIONS = {
-  ptsd: { name: 'PTSD / Anxiety / Depression', category: 'Mental Health', icon: '🧠',
-    question: 'How much do these symptoms affect daily life?',
-    options: [
-      { label: 'Mild - I manage day to day but have some bad days', value: 30 },
-      { label: 'Moderate - It affects my work and relationships regularly', value: 50 },
-      { label: 'Severe - I struggle to work or maintain relationships', value: 70 },
-      { label: 'Total - I cannot work or care for myself', value: 100 }
-    ]},
-  back: { name: 'Back / Neck Pain', category: 'Musculoskeletal', icon: '🦴',
-    question: 'How limited is your movement?',
-    options: [
-      { label: 'Some stiffness and pain but I can move around', value: 20 },
-      { label: 'Moderate - Pain limits my activities significantly', value: 40 },
-      { label: 'Severe - Very limited movement, constant pain', value: 50 }
-    ]},
-  knee: { name: 'Knee Problems', category: 'Musculoskeletal', icon: '🦵', bilateral: true,
-    question: 'How bad is the knee condition?',
-    options: [
-      { label: 'Some pain and stiffness', value: 10 },
-      { label: 'Unstable or limited movement', value: 20 },
-      { label: 'Severe - need brace or very limited', value: 30 }
-    ]},
-  shoulder: { name: 'Shoulder Problems', category: 'Musculoskeletal', icon: '💪', bilateral: true,
-    question: 'How high can you raise your arm?',
-    options: [
-      { label: 'To shoulder level but not overhead', value: 20 },
-      { label: 'Only halfway up', value: 30 },
-      { label: 'Barely away from my body', value: 40 }
-    ]},
-  tinnitus: { name: 'Ringing in Ears (Tinnitus)', category: 'Hearing', icon: '👂',
-    question: 'Do you have constant ringing or buzzing?',
-    options: [
-      { label: 'Yes, constant ringing/buzzing', value: 10 }
-    ]},
-  hearing: { name: 'Hearing Loss', category: 'Hearing', icon: '🔇',
-    question: 'How much hearing have you lost?',
-    options: [
-      { label: 'Mild - some difficulty in noisy places', value: 10 },
-      { label: 'Moderate - need hearing aids', value: 30 },
-      { label: 'Severe - struggle even with hearing aids', value: 50 }
-    ]},
-  sleep_apnea: { name: 'Sleep Apnea', category: 'Sleep', icon: '😴',
-    question: 'How is it treated?',
-    options: [
-      { label: 'CPAP machine', value: 50 },
-      { label: 'Surgery or severe symptoms', value: 100 }
-    ]},
-  migraine: { name: 'Migraines', category: 'Neurological', icon: '🤕',
-    question: 'How often do you get severe migraines?',
-    options: [
-      { label: 'A few times a year', value: 10 },
-      { label: 'Monthly', value: 30 },
-      { label: 'Several times a month - affects work', value: 50 }
-    ]},
-  diabetes: { name: 'Diabetes', category: 'Systemic', icon: '💉',
-    question: 'How is it managed?',
-    options: [
-      { label: 'Diet or oral medication', value: 20 },
-      { label: 'Insulin required', value: 40 }
-    ]},
-  scars: { name: 'Scars', category: 'Skin', icon: '🩹',
-    question: 'How significant are the scars?',
-    options: [
-      { label: 'Visible but not painful', value: 10 },
-      { label: 'Painful or limit movement', value: 20 },
-      { label: 'Disfiguring or very large', value: 30 }
-    ]},
-  nerve: { name: 'Nerve Pain / Numbness', category: 'Neurological', icon: '⚡', bilateral: true,
-    question: 'How severe is the nerve pain or numbness?',
-    options: [
-      { label: 'Mild tingling sometimes', value: 10 },
-      { label: 'Regular pain or numbness', value: 20 },
-      { label: 'Severe - affects use of limb', value: 40 }
-    ]},
-  gerd: { name: 'GERD / Acid Reflux', category: 'Digestive', icon: '🔥',
-    question: 'How severe is it?',
-    options: [
-      { label: 'Controlled with medication', value: 10 },
-      { label: 'Frequent symptoms despite medication', value: 30 }
-    ]}
-};
-
-function combinedRating(ratings) {
-  if (!ratings || ratings.length === 0) return 0;
-  const sorted = [...ratings].sort((a, b) => b - a);
-  let combined = sorted[0];
-  for (let i = 1; i < sorted.length; i++) {
-    combined = combined + ((100 - combined) * sorted[i]) / 100;
-  }
-  return Math.min(Math.round(combined / 10) * 10, 100);
-}
-
-function getMonthlyRate(rating, hasSpouse, hasChildren) {
-  if (rating === 0) return 0;
-  if (rating < 30) return COMPENSATION_RATES[rating] || 0;
-  const rates = COMPENSATION_RATES[rating];
-  if (!rates) return 0;
-  if (hasChildren && hasSpouse) return rates.childSpouse;
-  if (hasChildren) return rates.child;
-  if (hasSpouse) return rates.spouse;
-  return rates.alone;
-}
+const ZAPIER_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/26461290/ucytsdd/';
 
 export default function VACalculator() {
+  // ─── Navigation ───
   const [step, setStep] = useState('welcome');
+  const [stepHistory, setStepHistory] = useState([]);
+
+  // ─── Core State ───
   const [currentRating, setCurrentRating] = useState(0);
   const [hasSpouse, setHasSpouse] = useState(false);
   const [hasChildren, setHasChildren] = useState(false);
+
+  // ─── New Conditions (0% flow + new claims for 10-90%) ───
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showLeadForm, setShowLeadForm] = useState(false);
-  const [leadSubmitted, setLeadSubmitted] = useState(false);
+
+  // ─── 0% Eligibility Screening ───
+  const [hasAppliedBefore, setHasAppliedBefore] = useState(null);
+  const [wasToldIneligible, setWasToldIneligible] = useState(null);
+  const [servedActiveDuty, setServedActiveDuty] = useState(null);
+  const [dischargeStatus, setDischargeStatus] = useState(null);
+  const [hasCurrentCondition, setHasCurrentCondition] = useState(null);
+  const [serviceConnectionTypes, setServiceConnectionTypes] = useState([]);
+
+  // ─── 10-90% Rated Flow ───
+  const [currentRatedConditions, setCurrentRatedConditions] = useState([]);
+  const [wantsIncreasedRating, setWantsIncreasedRating] = useState(null);
+  const [increasedRatingConditions, setIncreasedRatingConditions] = useState([]);
+  const [increasedRatingAnswers, setIncreasedRatingAnswers] = useState({});
+  const [wantsNewClaims, setWantsNewClaims] = useState(null);
+  const [increasedQuestionIndex, setIncreasedQuestionIndex] = useState(0);
+
+  // ─── Shared ───
+  const [veteranFirstName, setVeteranFirstName] = useState('');
   const [leadInfo, setLeadInfo] = useState({ firstName: '', lastName: '', phone: '', email: '' });
+  const [leadSubmitted, setLeadSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionId] = useState(() => Date.now().toString(36) + Math.random().toString(36).substr(2));
   const [trackedSteps, setTrackedSteps] = useState(new Set());
@@ -213,7 +78,71 @@ export default function VACalculator() {
   const [exitPopupShown, setExitPopupShown] = useState(false);
   const [testimonialIndex, setTestimonialIndex] = useState(0);
 
-  // Rotate testimonials every 5 seconds
+  // ─── Navigation helpers ───
+  const goToStep = (newStep) => {
+    setStepHistory(prev => [...prev, step]);
+    setStep(newStep);
+  };
+
+  const goBack = () => {
+    if (stepHistory.length === 0) return;
+    const prevStep = stepHistory[stepHistory.length - 1];
+    setStepHistory(h => h.slice(0, -1));
+    setStep(prevStep);
+  };
+
+  // ─── Reset everything ───
+  const resetAll = () => {
+    setStep('welcome');
+    setStepHistory([]);
+    setCurrentRating(0);
+    setHasSpouse(false);
+    setHasChildren(false);
+    setSelectedConditions([]);
+    setAnswers({});
+    setCurrentQuestionIndex(0);
+    setHasAppliedBefore(null);
+    setWasToldIneligible(null);
+    setServedActiveDuty(null);
+    setDischargeStatus(null);
+    setHasCurrentCondition(null);
+    setServiceConnectionTypes([]);
+    setCurrentRatedConditions([]);
+    setWantsIncreasedRating(null);
+    setIncreasedRatingConditions([]);
+    setIncreasedRatingAnswers({});
+    setWantsNewClaims(null);
+    setIncreasedQuestionIndex(0);
+    setVeteranFirstName('');
+    setLeadInfo({ firstName: '', lastName: '', phone: '', email: '' });
+    setLeadSubmitted(false);
+    setIsSubmitting(false);
+    setShowExitPopup(false);
+    setExitPopupShown(false);
+  };
+
+  // ─── Reset flow-specific state when rating changes ───
+  const handleRatingChange = (rating) => {
+    setCurrentRating(rating);
+    // Clear flow-specific state
+    setSelectedConditions([]);
+    setAnswers({});
+    setCurrentQuestionIndex(0);
+    setHasAppliedBefore(null);
+    setWasToldIneligible(null);
+    setServedActiveDuty(null);
+    setDischargeStatus(null);
+    setHasCurrentCondition(null);
+    setServiceConnectionTypes([]);
+    setCurrentRatedConditions([]);
+    setWantsIncreasedRating(null);
+    setIncreasedRatingConditions([]);
+    setIncreasedRatingAnswers({});
+    setWantsNewClaims(null);
+    setIncreasedQuestionIndex(0);
+  };
+
+  // ─── Testimonial rotation ───
   useEffect(() => {
     const interval = setInterval(() => {
       setTestimonialIndex(prev => (prev + 1) % TESTIMONIALS.length);
@@ -221,92 +150,46 @@ export default function VACalculator() {
     return () => clearInterval(interval);
   }, []);
 
-  // Initialize Facebook Pixel on mount
+  // ─── Facebook Pixel ───
   useEffect(() => {
     initFacebookPixel();
   }, []);
 
-  // Track user progress through funnel
-  // ONLY sends to Zapier for key events: viewed_results and lead_submission
-  // Other events are tracked locally and via Facebook Pixel only
-  const trackStep = async (stepName, extraData = {}) => {
-    // Only track each step once per session
+  // ─── Tracking ───
+  // All funnel tracking is handled by Facebook Pixel only.
+  // Zapier is only used for lead submissions (in submitLead).
+  const trackStep = (stepName, extraData = {}) => {
     if (trackedSteps.has(stepName)) return;
     setTrackedSteps(prev => new Set([...prev, stepName]));
-
-    // Only send these key events to Zapier to save on zap costs
-    // 1_started = total sessions, 6_viewed_results = saw results, lead_submission = actual leads
-    const zapierEvents = ['1_started', '6_viewed_results'];
-    
-    if (!zapierEvents.includes(stepName)) {
-      // Still track locally, just don't send to Zapier
-      console.log('Step tracked locally:', stepName);
-      return;
-    }
-
-    const trackingData = {
-      type: 'funnel_tracking',
-      sessionId,
-      step: stepName,
-      timestamp: new Date().toISOString(),
-      currentRating: currentRating || 0,
-      conditionsSelected: selectedConditions.length,
-      conditionNames: selectedConditions.map(c => c.name).join(', ') || 'none',
-      ...extraData
-    };
-
-    try {
-      await fetch('https://hooks.zapier.com/hooks/catch/26188750/uqgkpei/', {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(trackingData)
-      });
-    } catch (e) {
-      console.error('Tracking error:', e);
-    }
+    console.log('Step tracked:', stepName, extraData);
   };
 
-  // Exit tracking removed to save Zapier costs
-  // Facebook Pixel still tracks page exits automatically
-
-  // Calculate results
-  const calculateResults = () => {
-    const newRatings = selectedConditions.map(cond => {
-      const answer = answers[cond.id];
-      if (!answer) return 0;
-      // For bilateral, count both sides
-      if (cond.bilateral && cond.side === 'Both') {
-        return [answer, answer];
-      }
-      return answer;
-    }).flat();
-
-    const allRatings = currentRating > 0 ? [currentRating, ...newRatings] : newRatings;
-    const projectedRating = combinedRating(allRatings);
-    const currentMonthly = getMonthlyRate(currentRating, hasSpouse, hasChildren);
-    const projectedMonthly = getMonthlyRate(projectedRating, hasSpouse, hasChildren);
-    const monthlyIncrease = projectedMonthly - currentMonthly;
-    const annualIncrease = monthlyIncrease * 12;
-    const fiveYearValue = annualIncrease * 5;
-
-    return { currentRating, projectedRating, currentMonthly, projectedMonthly, monthlyIncrease, annualIncrease, fiveYearValue, newRatings };
+  // ─── Calculate results ───
+  const getResults = () => {
+    return calculateResults({
+      currentRating,
+      hasSpouse,
+      hasChildren,
+      selectedConditions,
+      answers,
+      currentRatedConditions,
+      increasedRatingConditions,
+      increasedRatingAnswers,
+    });
   };
 
-  const results = (step === 'results') ? calculateResults() : null;
+  const results = (step === 'results') ? getResults() : null;
 
-  // Exit intent detection
+  // ─── Exit intent ───
   useEffect(() => {
     const handleMouseLeave = (e) => {
-      // Only trigger if mouse leaves through the top of the page
-      // Only show once, only if they haven't submitted, only if they've seen results
       if (
-        e.clientY < 10 && 
-        !exitPopupShown && 
-        !leadSubmitted && 
+        e.clientY < 10 &&
+        !exitPopupShown &&
+        !leadSubmitted &&
         step === 'results'
       ) {
-        const currentResults = calculateResults();
+        const currentResults = getResults();
         if (currentResults?.monthlyIncrease > 0) {
           setShowExitPopup(true);
           setExitPopupShown(true);
@@ -314,16 +197,11 @@ export default function VACalculator() {
         }
       }
     };
-
     document.addEventListener('mouseleave', handleMouseLeave);
     return () => document.removeEventListener('mouseleave', handleMouseLeave);
   }, [exitPopupShown, leadSubmitted, step]);
 
-  const currentQuestion = selectedConditions[currentQuestionIndex];
-  const progress = selectedConditions.length > 0 
-    ? Math.round(((currentQuestionIndex + 1) / selectedConditions.length) * 100)
-    : 0;
-
+  // ─── Condition toggling (for new claims) ───
   const toggleCondition = (key) => {
     const cond = CONDITIONS[key];
     const existing = selectedConditions.find(c => c.key === key);
@@ -343,56 +221,132 @@ export default function VACalculator() {
   };
 
   const setBilateralSide = (condId, side) => {
-    setSelectedConditions(selectedConditions.map(c => 
+    setSelectedConditions(selectedConditions.map(c =>
       c.id === condId ? { ...c, side } : c
     ));
   };
 
+  // ─── Toggle for currentRatedConditions (10-90% flow) ───
+  const toggleRatedCondition = (key) => {
+    const cond = CONDITIONS[key];
+    const existing = currentRatedConditions.find(c => c.key === key);
+    if (existing) {
+      setCurrentRatedConditions(currentRatedConditions.filter(c => c.key !== key));
+    } else {
+      setCurrentRatedConditions([...currentRatedConditions, {
+        key,
+        name: cond.name,
+        icon: cond.icon,
+        currentRating: 0
+      }]);
+    }
+  };
+
+  // ─── Toggle for increased rating conditions ───
+  const toggleIncreasedCondition = (key) => {
+    const existing = increasedRatingConditions.find(c => c.key === key);
+    if (existing) {
+      setIncreasedRatingConditions(increasedRatingConditions.filter(c => c.key !== key));
+    } else {
+      const cond = currentRatedConditions.find(c => c.key === key);
+      if (cond) {
+        setIncreasedRatingConditions([...increasedRatingConditions, cond]);
+      }
+    }
+  };
+
+  // ─── Handle severity answer for new conditions ───
   const answerQuestion = (value) => {
+    const currentQuestion = selectedConditions[currentQuestionIndex];
     setAnswers({ ...answers, [currentQuestion.id]: value });
     if (currentQuestionIndex < selectedConditions.length - 1) {
       trackStep(`4_question_${currentQuestionIndex + 1}_answered`);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       trackStep('5_all_questions_completed');
-      // Go to lead gate instead of directly to results
-      setStep('lead-gate');
+      goToStep('lead-gate');
     }
   };
 
+  // ─── Handle severity answer for increased rating conditions ───
+  const answerIncreasedQuestion = (value) => {
+    const currentCond = increasedRatingConditions[increasedQuestionIndex];
+    setIncreasedRatingAnswers({ ...increasedRatingAnswers, [currentCond.key]: value });
+    if (increasedQuestionIndex < increasedRatingConditions.length - 1) {
+      setIncreasedQuestionIndex(increasedQuestionIndex + 1);
+    } else {
+      goToStep('new-claims-prompt');
+    }
+  };
+
+  // ─── Submit lead ───
   const submitLead = async () => {
     setIsSubmitting(true);
-    const res = calculateResults();
+    const res = getResults();
+
+    // Build full conditions list for Zapier
+    const allConditions = [
+      ...(currentRatedConditions || []).map(c => ({
+        name: c.name,
+        type: increasedRatingConditions.find(ic => ic.key === c.key) ? 'increased' : 'existing',
+        currentRating: c.currentRating,
+        newRating: (increasedRatingAnswers || {})[c.key] || null
+      })),
+      ...(selectedConditions || []).map(c => ({
+        name: c.name,
+        type: 'new_claim',
+        currentRating: 0,
+        newRating: answers[c.id] || null
+      }))
+    ];
+
     const leadData = {
       type: 'lead_submission',
-      ...leadInfo,
+      sendEmail: true,
+      email: leadInfo.email,
+      firstName: veteranFirstName || leadInfo.firstName,
+      lastName: leadInfo.lastName,
+      phone: leadInfo.phone,
       sessionId,
       currentRating: res.currentRating,
       projectedRating: res.projectedRating,
-      monthlyIncrease: res.monthlyIncrease.toFixed(2),
-      annualIncrease: res.annualIncrease.toFixed(2),
-      fiveYearValue: res.fiveYearValue.toFixed(2),
-      conditions: selectedConditions.map(c => c.name).join(', '),
+      monthlyIncrease: res.monthlyIncrease.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      annualIncrease: res.annualIncrease.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      fiveYearValue: res.fiveYearValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      conditions: allConditions,
+      conditionNames: allConditions.map(c => c.name).join('  |  '),
+      qualifiesForIncrease: res.qualifiesForIncrease,
+      bannerImageUrl: '/team-photo1.jpg',
       submittedAt: new Date().toISOString(),
       source: 'facebook_ad'
     };
 
+    /*
+     * Zapier Email Template Notes:
+     * The Zapier workflow should:
+     * 1. Receive this payload
+     * 2. Send a branded HTML email to leadData.email containing:
+     *    - Team photo banner (bannerImageUrl)
+     *    - Personalized greeting using firstName
+     *    - Current rating → Projected rating
+     *    - Monthly/annual/5-year increase amounts
+     *    - List of conditions with their ratings
+     *    - CTA to call 1-866-HILLER LAW
+     *    - No Fee Guarantee badge
+     */
+
     try {
-      await fetch('https://hooks.zapier.com/hooks/catch/26188750/uqgkpei/', {
+      await fetch(ZAPIER_WEBHOOK, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(leadData)
       });
       trackStep('8_lead_submitted');
-      
-      // Track viewing results after lead submission
-      trackStep('6_viewed_results', { 
+      trackStep('6_viewed_results', {
         projectedRating: res.projectedRating,
         monthlyIncrease: res.monthlyIncrease.toFixed(2)
       });
-      
-      // Facebook: Track as Lead with value
       trackFBEvent('Lead', {
         content_name: 'VA Disability Case Review',
         content_category: 'Lead Form',
@@ -402,798 +356,498 @@ export default function VACalculator() {
     } catch (e) {
       console.error('Submit error:', e);
     }
-    
+
     setLeadSubmitted(true);
-    setShowLeadForm(false);
     setIsSubmitting(false);
-    // Show results after lead submission
-    setStep('results');
+    goToStep('results');
   };
 
-  const canProceedFromConditions = selectedConditions.length > 0 && 
-    selectedConditions.every(c => !c.bilateral || c.side);
-
-  // Styles
-  const theme = {
-    purple: '#5D3A8E',
-    purpleDark: '#4A2D72',
-    purpleLight: '#F5F0FF',
-    green: '#22C55E',
-    greenDark: '#16A34A',
-    greenLight: '#DCFCE7',
-    gray: '#6B7280',
-    grayLight: '#F3F4F6',
-    grayDark: '#1F2937',
-    white: '#FFFFFF',
-    gold: '#F59E0B'
+  // ─── Progress calculation ───
+  // Estimate progress as percentage based on flow
+  const getProgress = () => {
+    const stepProgressMap = {
+      'welcome': 0,
+      'current-rating': 5,
+      // 0% flow
+      'zero-reassure': 10,
+      'applied-before': 15,
+      'denied-reassure': 20,
+      'told-ineligible': 25,
+      'first-time-reassure': 20,
+      'unsure-reassure': 20,
+      'active-duty': 30,
+      'thank-service': 35,
+      'discharge-status': 40,
+      'current-condition': 50,
+      'service-connection': 55,
+      'first-name': 60,
+      // 10-90% flow
+      'rated-reassure': 10,
+      'current-rated-conditions': 20,
+      'enter-current-ratings': 30,
+      'first-name-rated': 40,
+      'increased-rating-prompt': 50,
+      'select-increased-conditions': 55,
+      'increased-questions': 60,
+      'new-claims-prompt': 65,
+      // Shared
+      'conditions': 70,
+      'questions': 80,
+      'lead-gate': 90,
+      'results': 100,
+      // Dead ends
+      'dead-ineligible': 100,
+      'dead-no-active-duty': 100,
+      'dead-dishonorable': 100,
+      'dead-no-condition': 100,
+      'dead-no-connection': 100,
+      'hundred-percent': 100,
+    };
+    return stepProgressMap[step] || 0;
   };
 
+  const progress = getProgress();
+
+  // ─── Render ───
   return (
-    <div style={{ 
-      minHeight: '100vh', 
+    <div style={{
+      minHeight: '100vh',
       background: `linear-gradient(180deg, ${theme.purple} 0%, ${theme.purpleLight} 40%, ${theme.white} 100%)`,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       padding: '16px',
       position: 'relative'
     }}>
       <div style={{ maxWidth: '500px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
-        
-        {/* Team Photo Banner at Top - only show on welcome screen */}
+
+        {/* ═══════ WELCOME ═══════ */}
         {step === 'welcome' && (
-          <div style={{
-            width: '100%',
-            marginBottom: '0',
-            borderRadius: '20px 20px 0 0',
-            overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-          }}>
-            <img 
-              src={TEAM_PHOTO_URL} 
-              alt="Hiller Comerford Attorneys"
-              style={{
-                width: '100%',
-                height: 'auto',
-                display: 'block'
-              }}
-            />
-          </div>
+          <WelcomeScreen
+            testimonialIndex={testimonialIndex}
+            setTestimonialIndex={setTestimonialIndex}
+            onStart={() => {
+              trackStep('1_started');
+              trackFBCustomEvent('CalculatorStarted');
+              goToStep('current-rating');
+            }}
+          />
         )}
 
-        {/* ============ WELCOME ============ */}
-        {step === 'welcome' && (
-          <div style={{ 
-            background: theme.white, 
-            borderRadius: '0 0 20px 20px',
-            padding: '28px 24px',
-            boxShadow: '0 10px 40px rgba(93,58,142,0.15)',
-            marginTop: '0'
-          }}>
-            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎖️</div>
-              <h1 style={{ 
-                fontSize: '24px', 
-                fontWeight: '800', 
-                color: theme.grayDark,
-                marginBottom: '8px',
-                lineHeight: 1.2
-              }}>
-                Are You Getting the VA Benefits You've <span style={{ color: theme.purple }}>Earned?</span>
-              </h1>
-              <p style={{ color: theme.gray, fontSize: '15px', lineHeight: 1.5 }}>
-                Find out in 60 seconds if you qualify for a higher rating and more compensation.
-              </p>
-            </div>
-
-            <div style={{ 
-              background: theme.greenLight, 
-              borderRadius: '12px', 
-              padding: '16px',
-              marginBottom: '16px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ fontSize: '28px' }}>💰</div>
-                <div>
-                  <div style={{ fontWeight: '700', color: theme.greenDark, fontSize: '15px' }}>
-                    Veterans Leave Money on the Table
-                  </div>
-                  <div style={{ color: theme.greenDark, fontSize: '13px' }}>
-                    The average increase we find is worth $15,000+ over 5 years
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ 
-              background: '#FEF3C7', 
-              borderRadius: '12px', 
-              padding: '16px',
-              marginBottom: '20px',
-              border: '2px solid #F59E0B'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ fontSize: '28px' }}>🛡️</div>
-                <div>
-                  <div style={{ fontWeight: '700', color: '#92400E', fontSize: '15px' }}>
-                    No Fee Guarantee
-                  </div>
-                  <div style={{ color: '#92400E', fontSize: '13px' }}>
-                    You'll never owe us a penny. If we win, the VA pays us directly.
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Rotating Testimonial on Welcome Screen */}
-            <div style={{ 
-              background: theme.grayLight, 
-              borderRadius: '12px', 
-              padding: '16px',
-              marginBottom: '24px',
-              minHeight: '85px'
-            }}>
-              <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
-                {[1,2,3,4,5].map(i => <span key={i} style={{ color: '#FBBF24', fontSize: '14px' }}>★</span>)}
-              </div>
-              <p style={{ 
-                fontSize: '13px', 
-                color: theme.grayDark, 
-                fontStyle: 'italic',
-                lineHeight: 1.5,
-                marginBottom: '8px'
-              }}>
-                "{TESTIMONIALS[testimonialIndex].quote}"
-              </p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: '12px', color: theme.gray, fontWeight: '600' }}>
-                  — {TESTIMONIALS[testimonialIndex].name}, {TESTIMONIALS[testimonialIndex].detail}
-                </div>
-                {/* Dots indicator */}
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  {TESTIMONIALS.map((_, i) => (
-                    <div 
-                      key={i}
-                      onClick={() => setTestimonialIndex(i)}
-                      style={{ 
-                        width: '5px', 
-                        height: '5px', 
-                        borderRadius: '50%', 
-                        background: i === testimonialIndex ? theme.purple : '#D1D5DB',
-                        cursor: 'pointer'
-                      }} 
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <button 
-              onClick={() => { 
-                trackStep('1_started'); 
-                trackFBCustomEvent('CalculatorStarted');
-                setStep('current-rating'); 
-              }}
-              style={{
-                width: '100%',
-                padding: '18px',
-                background: `linear-gradient(135deg, ${theme.purple}, ${theme.purpleDark})`,
-                color: theme.white,
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '18px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(93,58,142,0.3)'
-              }}
-            >
-              Check My Benefits →
-            </button>
-
-            <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: theme.gray }}>
-              ✓ Free &nbsp; ✓ Takes 60 seconds &nbsp; ✓ No obligation
-            </p>
-          </div>
-        )}
-
-        {/* ============ CURRENT RATING ============ */}
+        {/* ═══════ CURRENT RATING ═══════ */}
         {step === 'current-rating' && (
-          <div style={{ 
-            background: theme.white, 
-            borderRadius: '20px', 
-            padding: '24px',
-            boxShadow: '0 10px 40px rgba(93,58,142,0.15)'
-          }}>
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontSize: '12px', color: theme.purple, fontWeight: '600', marginBottom: '4px' }}>STEP 1 OF 3</div>
-              <h2 style={{ fontSize: '20px', fontWeight: '700', color: theme.grayDark, marginBottom: '8px' }}>
-                What's your current VA disability rating?
-              </h2>
-              <p style={{ color: theme.gray, fontSize: '14px' }}>Select 0% if you don't have a rating yet.</p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '20px' }}>
-              {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90].map(rating => (
-                <button
-                  key={rating}
-                  onClick={() => setCurrentRating(rating)}
-                  style={{
-                    padding: '14px 8px',
-                    border: currentRating === rating ? `2px solid ${theme.purple}` : '2px solid #E5E7EB',
-                    borderRadius: '10px',
-                    background: currentRating === rating ? theme.purpleLight : theme.white,
-                    color: currentRating === rating ? theme.purple : theme.grayDark,
-                    fontWeight: '600',
-                    fontSize: '16px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {rating}%
-                </button>
-              ))}
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', cursor: 'pointer' }}>
-                <input 
-                  type="checkbox" 
-                  checked={hasSpouse} 
-                  onChange={e => setHasSpouse(e.target.checked)}
-                  style={{ width: '20px', height: '20px', accentColor: theme.purple }}
-                />
-                <span style={{ fontSize: '15px', color: theme.grayDark }}>I'm married</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                <input 
-                  type="checkbox" 
-                  checked={hasChildren} 
-                  onChange={e => setHasChildren(e.target.checked)}
-                  style={{ width: '20px', height: '20px', accentColor: theme.purple }}
-                />
-                <span style={{ fontSize: '15px', color: theme.grayDark }}>I have dependent children</span>
-              </label>
-            </div>
-
-            <button 
-              onClick={() => { 
-                trackStep('2_rating_selected', { rating: currentRating }); 
-                trackFBCustomEvent('RatingSelected', { current_rating: currentRating });
-                setStep('conditions'); 
-              }}
-              style={{
-                width: '100%',
-                padding: '16px',
-                background: theme.purple,
-                color: theme.white,
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              Continue →
-            </button>
-          </div>
+          <CurrentRatingScreen
+            currentRating={currentRating}
+            setCurrentRating={handleRatingChange}
+            hasSpouse={hasSpouse}
+            setHasSpouse={setHasSpouse}
+            hasChildren={hasChildren}
+            setHasChildren={setHasChildren}
+            progress={progress}
+            onBack={goBack}
+            onContinue={() => {
+              trackStep('2_rating_selected', { rating: currentRating });
+              trackFBCustomEvent('RatingSelected', { current_rating: currentRating });
+              if (currentRating === 100) {
+                goToStep('hundred-percent');
+              } else if (currentRating === 0) {
+                goToStep('zero-reassure');
+              } else {
+                goToStep('rated-reassure');
+              }
+            }}
+          />
         )}
 
-        {/* ============ SELECT CONDITIONS ============ */}
+        {/* ═══════ 100% DEAD END ═══════ */}
+        {step === 'hundred-percent' && (
+          <HundredPercentScreen onStartOver={resetAll} />
+        )}
+
+        {/* ═══════════════════════════════════════ */}
+        {/* ═══════ 0% ELIGIBILITY FLOW ═══════════ */}
+        {/* ═══════════════════════════════════════ */}
+
+        {step === 'zero-reassure' && (
+          <ZeroReassureScreen
+            progress={progress}
+            onBack={goBack}
+            onContinue={() => goToStep('applied-before')}
+          />
+        )}
+
+        {step === 'applied-before' && (
+          <AppliedBeforeScreen
+            progress={progress}
+            onBack={goBack}
+            onAnswer={(value) => {
+              setHasAppliedBefore(value);
+              if (value === 'yes') {
+                goToStep('denied-reassure');
+              } else if (value === 'no') {
+                goToStep('first-time-reassure');
+              } else {
+                goToStep('unsure-reassure');
+              }
+            }}
+          />
+        )}
+
+        {step === 'denied-reassure' && (
+          <DeniedReassureScreen
+            progress={progress}
+            onBack={goBack}
+            onContinue={() => goToStep('told-ineligible')}
+          />
+        )}
+
+        {step === 'told-ineligible' && (
+          <ToldIneligibleScreen
+            progress={progress}
+            onBack={goBack}
+            onAnswer={(wasIneligible) => {
+              setWasToldIneligible(wasIneligible);
+              if (wasIneligible) {
+                goToStep('dead-ineligible');
+              } else {
+                goToStep('active-duty');
+              }
+            }}
+          />
+        )}
+
+        {step === 'dead-ineligible' && (
+          <DeadEndScreen
+            icon="📞"
+            title="We May Still Be Able to Help"
+            message="If you were told you were ineligible, our attorneys may be able to review your case and find options. Give us a call for a free consultation."
+            ctaText="Call 1-866-HILLER LAW"
+            ctaHref="tel:1-866-445-5375"
+            onStartOver={resetAll}
+          />
+        )}
+
+        {step === 'first-time-reassure' && (
+          <FirstTimeReassureScreen
+            progress={progress}
+            onBack={goBack}
+            onContinue={() => goToStep('active-duty')}
+          />
+        )}
+
+        {step === 'unsure-reassure' && (
+          <UnsureReassureScreen
+            progress={progress}
+            onBack={goBack}
+            onContinue={() => goToStep('active-duty')}
+          />
+        )}
+
+        {step === 'active-duty' && (
+          <ActiveDutyScreen
+            progress={progress}
+            onBack={goBack}
+            onAnswer={(served) => {
+              setServedActiveDuty(served);
+              if (served) {
+                goToStep('thank-service');
+              } else {
+                goToStep('dead-no-active-duty');
+              }
+            }}
+          />
+        )}
+
+        {step === 'dead-no-active-duty' && (
+          <DeadEndScreen
+            icon="⚠️"
+            title="Eligibility Requires Active Duty Service"
+            message="VA disability benefits require service on active duty or active duty for training. If you believe this is incorrect, please contact us for guidance."
+            ctaText="Call 1-866-HILLER LAW"
+            ctaHref="tel:1-866-445-5375"
+            onStartOver={resetAll}
+          />
+        )}
+
+        {step === 'thank-service' && (
+          <ThankServiceScreen
+            progress={progress}
+            onBack={goBack}
+            onContinue={() => goToStep('discharge-status')}
+          />
+        )}
+
+        {step === 'discharge-status' && (
+          <DischargeStatusScreen
+            progress={progress}
+            onBack={goBack}
+            onAnswer={(status) => {
+              setDischargeStatus(status);
+              if (status === 'dishonorable') {
+                goToStep('dead-dishonorable');
+              } else {
+                goToStep('current-condition');
+              }
+            }}
+          />
+        )}
+
+        {step === 'dead-dishonorable' && (
+          <DeadEndScreen
+            icon="⚖️"
+            title="Discharge Upgrade May Be Needed"
+            message="A dishonorable discharge generally prevents VA disability benefits. However, a discharge upgrade attorney may be able to help change your discharge status. We recommend consulting with a specialist."
+            ctaText="Call 1-866-HILLER LAW"
+            ctaHref="tel:1-866-445-5375"
+            onStartOver={resetAll}
+          />
+        )}
+
+        {step === 'current-condition' && (
+          <CurrentConditionScreen
+            progress={progress}
+            onBack={goBack}
+            onAnswer={(hasCond) => {
+              setHasCurrentCondition(hasCond);
+              if (hasCond) {
+                goToStep('service-connection');
+              } else {
+                goToStep('dead-no-condition');
+              }
+            }}
+          />
+        )}
+
+        {step === 'dead-no-condition' && (
+          <DeadEndScreen
+            icon="ℹ️"
+            title="A Current Condition Is Required"
+            message="VA disability compensation requires a current diagnosed or diagnosable condition. If you develop symptoms in the future that may be connected to your service, don't hesitate to reach out."
+            ctaText="Call 1-866-HILLER LAW"
+            ctaHref="tel:1-866-445-5375"
+            onStartOver={resetAll}
+          />
+        )}
+
+        {step === 'service-connection' && (
+          <ServiceConnectionScreen
+            progress={progress}
+            onBack={goBack}
+            onContinue={(selected) => {
+              setServiceConnectionTypes(selected);
+              if (selected.includes('none') && selected.length === 1) {
+                goToStep('dead-no-connection');
+              } else {
+                goToStep('first-name');
+              }
+            }}
+          />
+        )}
+
+        {step === 'dead-no-connection' && (
+          <DeadEndScreen
+            icon="🔗"
+            title="Service Connection Needed"
+            message="VA disability benefits require a connection between your condition and military service. If you're unsure whether your condition qualifies, our team can help evaluate your situation."
+            ctaText="Call 1-866-HILLER LAW"
+            ctaHref="tel:1-866-445-5375"
+            onStartOver={resetAll}
+          />
+        )}
+
+        {step === 'first-name' && (
+          <FirstNameScreen
+            title="Everything Looks Good!"
+            subtitle="What is your first name?"
+            veteranFirstName={veteranFirstName}
+            progress={progress}
+            onBack={goBack}
+            onContinue={(name) => {
+              setVeteranFirstName(name);
+              setLeadInfo(prev => ({ ...prev, firstName: name }));
+              goToStep('conditions');
+            }}
+          />
+        )}
+
+        {/* ═══════════════════════════════════════ */}
+        {/* ═══════ 10-90% RATED FLOW ═════════════ */}
+        {/* ═══════════════════════════════════════ */}
+
+        {step === 'rated-reassure' && (
+          <RatedReassureScreen
+            currentRating={currentRating}
+            progress={progress}
+            onBack={goBack}
+            onContinue={() => goToStep('current-rated-conditions')}
+          />
+        )}
+
+        {step === 'current-rated-conditions' && (
+          <CurrentRatedConditionsScreen
+            currentRatedConditions={currentRatedConditions}
+            onToggleCondition={toggleRatedCondition}
+            progress={progress}
+            onBack={goBack}
+            onContinue={() => goToStep('enter-current-ratings')}
+          />
+        )}
+
+        {step === 'enter-current-ratings' && (
+          <EnterCurrentRatingsScreen
+            currentRatedConditions={currentRatedConditions}
+            progress={progress}
+            onBack={goBack}
+            onComplete={(ratings) => {
+              // Store individual ratings on each condition
+              setCurrentRatedConditions(prev =>
+                prev.map(c => ({ ...c, currentRating: ratings[c.key] || 0 }))
+              );
+              goToStep('first-name-rated');
+            }}
+          />
+        )}
+
+        {step === 'first-name-rated' && (
+          <FirstNameScreen
+            title="Thank You!"
+            subtitle="What is your first name?"
+            veteranFirstName={veteranFirstName}
+            progress={progress}
+            onBack={goBack}
+            onContinue={(name) => {
+              setVeteranFirstName(name);
+              setLeadInfo(prev => ({ ...prev, firstName: name }));
+              goToStep('increased-rating-prompt');
+            }}
+          />
+        )}
+
+        {step === 'increased-rating-prompt' && (
+          <IncreasedRatingPromptScreen
+            veteranFirstName={veteranFirstName}
+            progress={progress}
+            onBack={goBack}
+            onAnswer={(wants) => {
+              setWantsIncreasedRating(wants);
+              if (wants) {
+                goToStep('select-increased-conditions');
+              } else {
+                goToStep('new-claims-prompt');
+              }
+            }}
+          />
+        )}
+
+        {step === 'select-increased-conditions' && (
+          <SelectIncreasedConditionsScreen
+            currentRatedConditions={currentRatedConditions}
+            increasedRatingConditions={increasedRatingConditions}
+            onToggleCondition={toggleIncreasedCondition}
+            progress={progress}
+            onBack={goBack}
+            onContinue={() => {
+              setIncreasedQuestionIndex(0);
+              goToStep('increased-questions');
+            }}
+          />
+        )}
+
+        {step === 'increased-questions' && (
+          <QuestionsScreen
+            conditions={increasedRatingConditions.map(c => ({
+              ...c,
+              ...CONDITIONS[c.key]
+            }))}
+            currentQuestionIndex={increasedQuestionIndex}
+            answers={increasedRatingAnswers}
+            progress={progress}
+            onAnswer={answerIncreasedQuestion}
+            onPrevious={() => {
+              if (increasedQuestionIndex > 0) {
+                setIncreasedQuestionIndex(increasedQuestionIndex - 1);
+              }
+            }}
+          />
+        )}
+
+        {step === 'new-claims-prompt' && (
+          <NewClaimsPromptScreen
+            veteranFirstName={veteranFirstName}
+            progress={progress}
+            onBack={goBack}
+            onAnswer={(wants) => {
+              setWantsNewClaims(wants);
+              if (wants) {
+                goToStep('conditions');
+              } else {
+                // Go straight to lead gate
+                goToStep('lead-gate');
+              }
+            }}
+          />
+        )}
+
+        {/* ═══════════════════════════════════════ */}
+        {/* ═══════ SHARED SCREENS ════════════════ */}
+        {/* ═══════════════════════════════════════ */}
+
         {step === 'conditions' && (
-          <div style={{ 
-            background: theme.white, 
-            borderRadius: '20px', 
-            padding: '24px',
-            boxShadow: '0 10px 40px rgba(93,58,142,0.15)'
-          }}>
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '12px', color: theme.purple, fontWeight: '600', marginBottom: '4px' }}>STEP 2 OF 3</div>
-              <h2 style={{ fontSize: '20px', fontWeight: '700', color: theme.grayDark, marginBottom: '8px' }}>
-                What conditions affect you?
-              </h2>
-              <p style={{ color: theme.gray, fontSize: '14px' }}>Select all that apply. These should be connected to your service.</p>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', maxHeight: '400px', overflowY: 'auto' }}>
-              {Object.entries(CONDITIONS).map(([key, cond]) => {
-                const isSelected = selectedConditions.find(c => c.key === key);
-                return (
-                  <div key={key}>
-                    <button
-                      onClick={() => toggleCondition(key)}
-                      style={{
-                        width: '100%',
-                        padding: '14px 16px',
-                        border: isSelected ? `2px solid ${theme.purple}` : '2px solid #E5E7EB',
-                        borderRadius: '12px',
-                        background: isSelected ? theme.purpleLight : theme.white,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        cursor: 'pointer',
-                        textAlign: 'left'
-                      }}
-                    >
-                      <span style={{ fontSize: '24px' }}>{cond.icon}</span>
-                      <span style={{ 
-                        flex: 1, 
-                        fontWeight: '500', 
-                        color: isSelected ? theme.purple : theme.grayDark,
-                        fontSize: '15px'
-                      }}>
-                        {cond.name}
-                      </span>
-                      {isSelected && <span style={{ color: theme.green, fontSize: '20px' }}>✓</span>}
-                    </button>
-                    
-                    {/* Bilateral selector */}
-                    {isSelected && cond.bilateral && (
-                      <div style={{ 
-                        display: 'flex', 
-                        gap: '8px', 
-                        marginTop: '8px', 
-                        marginLeft: '48px',
-                        marginBottom: '4px'
-                      }}>
-                        {['Left', 'Right', 'Both'].map(side => (
-                          <button
-                            key={side}
-                            onClick={() => setBilateralSide(isSelected.id, side)}
-                            style={{
-                              padding: '8px 16px',
-                              border: isSelected.side === side ? `2px solid ${theme.purple}` : '1px solid #E5E7EB',
-                              borderRadius: '8px',
-                              background: isSelected.side === side ? theme.purpleLight : theme.white,
-                              color: isSelected.side === side ? theme.purple : theme.gray,
-                              fontSize: '13px',
-                              fontWeight: '500',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            {side}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {selectedConditions.length > 0 && (
-              <div style={{ 
-                background: theme.greenLight, 
-                padding: '12px 16px', 
-                borderRadius: '10px',
-                marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}>
-                <span style={{ color: theme.greenDark, fontWeight: '500' }}>
-                  {selectedConditions.length} condition{selectedConditions.length > 1 ? 's' : ''} selected
-                </span>
-                <span style={{ color: theme.green, fontSize: '20px' }}>✓</span>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button 
-                onClick={() => setStep('current-rating')}
-                style={{
-                  padding: '16px 24px',
-                  background: theme.grayLight,
-                  color: theme.gray,
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
-                }}
-              >
-                ← Back
-              </button>
-              <button 
-                onClick={() => { 
-                  trackStep('3_conditions_selected'); 
-                  trackFBCustomEvent('ConditionsSelected', { 
-                    num_conditions: selectedConditions.length,
-                    conditions: selectedConditions.map(c => c.name).join(', ')
-                  });
-                  setCurrentQuestionIndex(0); 
-                  setStep('questions'); 
-                }}
-                disabled={!canProceedFromConditions}
-                style={{
-                  flex: 1,
-                  padding: '16px',
-                  background: canProceedFromConditions ? theme.purple : '#D1D5DB',
-                  color: theme.white,
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  cursor: canProceedFromConditions ? 'pointer' : 'not-allowed'
-                }}
-              >
-                Continue →
-              </button>
-            </div>
-          </div>
+          <ConditionsScreen
+            selectedConditions={selectedConditions}
+            excludeKeys={currentRatedConditions.map(c => c.key)}
+            onToggleCondition={toggleCondition}
+            onSetBilateralSide={setBilateralSide}
+            progress={progress}
+            onBack={goBack}
+            onContinue={() => {
+              trackStep('3_conditions_selected');
+              trackFBCustomEvent('ConditionsSelected', {
+                num_conditions: selectedConditions.length,
+                conditions: selectedConditions.map(c => c.name).join(', ')
+              });
+              setCurrentQuestionIndex(0);
+              goToStep('questions');
+            }}
+          />
         )}
 
-        {/* ============ QUESTIONS ============ */}
-        {step === 'questions' && currentQuestion && (
-          <div style={{ 
-            background: theme.white, 
-            borderRadius: '20px', 
-            padding: '24px',
-            boxShadow: '0 10px 40px rgba(93,58,142,0.15)'
-          }}>
-            {/* Progress bar */}
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', color: theme.purple, fontWeight: '600' }}>STEP 3 OF 3</span>
-                <span style={{ fontSize: '12px', color: theme.gray }}>{currentQuestionIndex + 1} of {selectedConditions.length}</span>
-              </div>
-              <div style={{ height: '8px', background: theme.grayLight, borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ 
-                  height: '100%', 
-                  width: `${progress}%`, 
-                  background: `linear-gradient(90deg, ${theme.purple}, ${theme.green})`,
-                  borderRadius: '4px',
-                  transition: 'width 0.3s ease'
-                }} />
-              </div>
-            </div>
-
-            <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '40px' }}>{currentQuestion.icon}</span>
-            </div>
-            
-            <h2 style={{ 
-              fontSize: '18px', 
-              fontWeight: '700', 
-              color: theme.grayDark, 
-              marginBottom: '6px',
-              textAlign: 'center'
-            }}>
-              {currentQuestion.name}
-              {currentQuestion.side && ` (${currentQuestion.side})`}
-            </h2>
-            
-            <p style={{ 
-              color: theme.gray, 
-              fontSize: '15px', 
-              marginBottom: '20px',
-              textAlign: 'center'
-            }}>
-              {CONDITIONS[currentQuestion.key].question}
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {CONDITIONS[currentQuestion.key].options.map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => answerQuestion(opt.value)}
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    border: '2px solid #E5E7EB',
-                    borderRadius: '12px',
-                    background: theme.white,
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                  onMouseOver={e => {
-                    e.currentTarget.style.borderColor = theme.purple;
-                    e.currentTarget.style.background = theme.purpleLight;
-                  }}
-                  onMouseOut={e => {
-                    e.currentTarget.style.borderColor = '#E5E7EB';
-                    e.currentTarget.style.background = theme.white;
-                  }}
-                >
-                  <span style={{ color: theme.grayDark, fontSize: '15px', fontWeight: '500' }}>{opt.label}</span>
-                  <span style={{ 
-                    background: theme.greenLight, 
-                    color: theme.greenDark, 
-                    padding: '4px 10px', 
-                    borderRadius: '6px',
-                    fontSize: '13px',
-                    fontWeight: '600'
-                  }}>
-                    {opt.value}%
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {currentQuestionIndex > 0 && (
-              <button 
-                onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
-                style={{
-                  width: '100%',
-                  marginTop: '16px',
-                  padding: '12px',
-                  background: 'transparent',
-                  color: theme.gray,
-                  border: 'none',
-                  fontSize: '14px',
-                  cursor: 'pointer'
-                }}
-              >
-                ← Previous question
-              </button>
-            )}
-          </div>
+        {step === 'questions' && (
+          <QuestionsScreen
+            conditions={selectedConditions}
+            currentQuestionIndex={currentQuestionIndex}
+            answers={answers}
+            progress={progress}
+            onAnswer={answerQuestion}
+            onPrevious={() => {
+              if (currentQuestionIndex > 0) {
+                setCurrentQuestionIndex(currentQuestionIndex - 1);
+              }
+            }}
+          />
         )}
 
-        {/* ============ LEAD GATE ============ */}
         {step === 'lead-gate' && (
-          <div style={{ 
-            background: theme.white, 
-            borderRadius: '20px', 
-            padding: '28px 24px',
-            boxShadow: '0 10px 40px rgba(93,58,142,0.15)'
-          }}>
-            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎉</div>
-              <h2 style={{ 
-                fontSize: '22px', 
-                fontWeight: '800', 
-                color: theme.grayDark,
-                marginBottom: '8px',
-                lineHeight: 1.2
-              }}>
-                Great News — You May Qualify!
-              </h2>
-              <p style={{ color: theme.gray, fontSize: '15px', lineHeight: 1.5 }}>
-                Based on your answers, we've calculated your potential rating increase. Enter your info to see your results.
-              </p>
-            </div>
-
-            {/* Teaser */}
-            <div style={{ 
-              background: theme.greenLight, 
-              borderRadius: '12px', 
-              padding: '16px',
-              marginBottom: '20px',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '14px', color: theme.greenDark, marginBottom: '4px' }}>Your results are ready!</div>
-              <div style={{ fontSize: '24px', fontWeight: '800', color: theme.green }}>
-                See Your Potential Increase →
-              </div>
-            </div>
-
-            {/* Lead Form */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
-              <input
-                type="text"
-                placeholder="First Name"
-                value={leadInfo.firstName}
-                onChange={e => setLeadInfo({ ...leadInfo, firstName: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  border: '2px solid #E5E7EB',
-                  borderRadius: '10px',
-                  fontSize: '16px',
-                  boxSizing: 'border-box'
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                value={leadInfo.lastName}
-                onChange={e => setLeadInfo({ ...leadInfo, lastName: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  border: '2px solid #E5E7EB',
-                  borderRadius: '10px',
-                  fontSize: '16px',
-                  boxSizing: 'border-box'
-                }}
-              />
-              <input
-                type="tel"
-                placeholder="Phone Number (10 digits)"
-                value={leadInfo.phone}
-                onChange={e => {
-                  const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-                  setLeadInfo({ ...leadInfo, phone: digits });
-                }}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  border: `2px solid ${leadInfo.phone && leadInfo.phone.length !== 10 && leadInfo.phone.length > 0 ? '#EF4444' : '#E5E7EB'}`,
-                  borderRadius: '10px',
-                  fontSize: '16px',
-                  boxSizing: 'border-box'
-                }}
-              />
-              {leadInfo.phone && leadInfo.phone.length > 0 && leadInfo.phone.length !== 10 && (
-                <div style={{ color: '#EF4444', fontSize: '13px', marginTop: '-8px' }}>
-                  Please enter 10 digits ({leadInfo.phone.length}/10)
-                </div>
-              )}
-            </div>
-
-            <button 
-              onClick={submitLead}
-              disabled={!leadInfo.firstName || !leadInfo.lastName || leadInfo.phone.length !== 10 || isSubmitting}
-              style={{
-                width: '100%',
-                padding: '18px',
-                background: (!leadInfo.firstName || !leadInfo.lastName || leadInfo.phone.length !== 10 || isSubmitting) ? '#D1D5DB' : theme.green,
-                color: theme.white,
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '18px',
-                fontWeight: '700',
-                cursor: (!leadInfo.firstName || !leadInfo.lastName || leadInfo.phone.length !== 10 || isSubmitting) ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {isSubmitting ? 'Loading...' : 'Show My Results →'}
-            </button>
-
-            {/* No Fee Guarantee */}
-            <div style={{ 
-              marginTop: '16px', 
-              padding: '12px', 
-              background: '#FEF3C7', 
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
-              <span style={{ fontSize: '18px' }}>🛡️</span>
-              <span style={{ fontSize: '12px', color: '#92400E' }}>
-                <strong>No Fee Guarantee.</strong> You pay nothing. If we win, the VA pays us.
-              </span>
-            </div>
-
-            {/* Testimonial */}
-            <div style={{ 
-              marginTop: '16px',
-              background: theme.grayLight, 
-              borderRadius: '10px', 
-              padding: '14px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <div style={{ fontSize: '24px' }}>⭐</div>
-                <div>
-                  <p style={{ 
-                    fontSize: '13px', 
-                    color: theme.grayDark, 
-                    fontStyle: 'italic',
-                    lineHeight: 1.5,
-                    marginBottom: '6px'
-                  }}>
-                    "{TESTIMONIALS[testimonialIndex].quote}"
-                  </p>
-                  <div style={{ fontSize: '12px', color: theme.gray, fontWeight: '600' }}>
-                    — {TESTIMONIALS[testimonialIndex].name}, {TESTIMONIALS[testimonialIndex].detail}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <button 
-              onClick={() => setStep('questions')}
-              style={{
-                width: '100%',
-                marginTop: '12px',
-                padding: '10px',
-                background: 'transparent',
-                color: theme.gray,
-                border: 'none',
-                fontSize: '13px',
-                cursor: 'pointer'
-              }}
-            >
-              ← Back to questions
-            </button>
-          </div>
+          <LeadGateScreen
+            leadInfo={leadInfo}
+            setLeadInfo={setLeadInfo}
+            veteranFirstName={veteranFirstName}
+            isSubmitting={isSubmitting}
+            qualifiesForIncrease={(() => {
+              const res = getResults();
+              return res.qualifiesForIncrease;
+            })()}
+            onSubmit={submitLead}
+            onBack={goBack}
+            testimonialIndex={testimonialIndex}
+            progress={progress}
+          />
         )}
 
-        {/* ============ RESULTS ============ */}
         {step === 'results' && results && (
-          <div>
-            {/* Main Results Card */}
-            <div style={{ 
-              background: `linear-gradient(135deg, ${theme.purple}, ${theme.purpleDark})`,
-              borderRadius: '20px', 
-              padding: '28px 24px',
-              marginBottom: '16px',
-              color: theme.white,
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '16px' }}>YOUR POTENTIAL RATING</div>
-              
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginBottom: '20px' }}>
-                <div>
-                  <div style={{ fontSize: '14px', opacity: 0.8 }}>Current</div>
-                  <div style={{ fontSize: '42px', fontWeight: '800' }}>{results.currentRating}%</div>
-                </div>
-                <div style={{ fontSize: '28px' }}>→</div>
-                <div>
-                  <div style={{ fontSize: '14px', opacity: 0.8 }}>Potential</div>
-                  <div style={{ fontSize: '48px', fontWeight: '800', color: '#4ADE80' }}>{results.projectedRating}%</div>
-                </div>
-              </div>
-
-              {results.monthlyIncrease > 0 ? (
-                <div style={{ 
-                  background: 'rgba(255,255,255,0.15)', 
-                  borderRadius: '12px', 
-                  padding: '16px',
-                  marginBottom: '8px'
-                }}>
-                  <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '4px' }}>Potential Monthly Increase</div>
-                  <div style={{ fontSize: '36px', fontWeight: '800' }}>+${results.monthlyIncrease.toFixed(0)}</div>
-                  <div style={{ fontSize: '14px', opacity: 0.8, marginTop: '4px' }}>
-                    That's <strong>${results.annualIncrease.toFixed(0)}/year</strong>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ 
-                  background: 'rgba(255,255,255,0.15)', 
-                  borderRadius: '12px', 
-                  padding: '16px'
-                }}>
-                  <div style={{ fontSize: '16px' }}>
-                    Based on your answers, you may already be at your correct rating. But there could be other factors we can review.
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Thank You & Next Steps */}
-            <div style={{ 
-              background: theme.greenLight,
-              borderRadius: '16px', 
-              padding: '24px',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: theme.greenDark, marginBottom: '8px' }}>
-                Thank You, {leadInfo.firstName}!
-              </h3>
-              <p style={{ color: theme.greenDark, fontSize: '15px', marginBottom: '16px' }}>
-                One of our VA disability experts will contact you within 24 hours to discuss your case and help you get the benefits you've earned.
-              </p>
-              <p style={{ color: theme.greenDark, fontSize: '14px' }}>
-                <strong>Questions?</strong> Call us at <a href="tel:1-866-445-5375" style={{ color: theme.greenDark }}>1-866-HILLER LAW</a>
-              </p>
-            </div>
-
-            {/* Trust Badges */}
-            <div style={{ 
-              marginTop: '20px', 
-              textAlign: 'center',
-              color: theme.gray,
-              fontSize: '12px'
-            }}>
-              <div style={{ 
-                display: 'inline-flex', 
-                alignItems: 'center', 
-                gap: '6px',
-                background: '#FEF3C7',
-                padding: '8px 16px',
-                borderRadius: '20px',
-                marginBottom: '16px'
-              }}>
-                <span>🛡️</span>
-                <span style={{ color: '#92400E', fontWeight: '600' }}>No Fee Guarantee</span>
-              </div>
-              
-              <div>Trusted by thousands of veterans</div>
-            </div>
-          </div>
+          <ResultsScreen
+            results={results}
+            leadInfo={leadInfo}
+            veteranFirstName={veteranFirstName}
+          />
         )}
 
         {/* Footer */}
@@ -1205,134 +859,18 @@ export default function VACalculator() {
 
       {/* Exit Intent Popup */}
       {showExitPopup && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          padding: '16px'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '20px',
-            padding: '32px 24px',
-            maxWidth: '400px',
-            width: '100%',
-            textAlign: 'center',
-            position: 'relative',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-          }}>
-            {/* Close button */}
-            <button
-              onClick={() => setShowExitPopup(false)}
-              style={{
-                position: 'absolute',
-                top: '12px',
-                right: '12px',
-                background: 'none',
-                border: 'none',
-                fontSize: '24px',
-                color: theme.gray,
-                cursor: 'pointer',
-                padding: '4px'
-              }}
-            >
-              ×
-            </button>
-
-            <div style={{ fontSize: '40px', marginBottom: '16px' }}>⚠️</div>
-            
-            <h2 style={{ 
-              fontSize: '24px', 
-              fontWeight: '800', 
-              color: theme.grayDark,
-              marginBottom: '12px'
-            }}>
-              Wait - You Could Be Leaving Money Behind
-            </h2>
-            
-            <div style={{
-              background: theme.greenLight,
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '20px'
-            }}>
-              <div style={{ fontSize: '14px', color: theme.gray, marginBottom: '4px' }}>
-                Based on your results
-              </div>
-              <div style={{ fontSize: '36px', fontWeight: '800', color: theme.green }}>
-                +${results?.monthlyIncrease?.toFixed(0) || '0'}/month
-              </div>
-            </div>
-            
-            <p style={{ 
-              color: theme.gray, 
-              fontSize: '15px', 
-              marginBottom: '24px',
-              lineHeight: 1.5
-            }}>
-              Every month you wait is money lost. Let us help you get what you've earned.
-            </p>
-
-            <button
-              onClick={() => {
-                setShowExitPopup(false);
-                setShowLeadForm(true);
-                trackStep('exit_popup_clicked_cta');
-              }}
-              style={{
-                width: '100%',
-                padding: '18px',
-                background: theme.green,
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '18px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                marginBottom: '12px'
-              }}
-            >
-              Have Someone Call Me →
-            </button>
-            
-            <button
-              onClick={() => {
-                setShowExitPopup(false);
-                trackStep('exit_popup_dismissed');
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: theme.gray,
-                fontSize: '14px',
-                cursor: 'pointer',
-                padding: '8px'
-              }}
-            >
-              No thanks, I'll leave
-            </button>
-
-            <div style={{
-              marginTop: '16px',
-              padding: '12px',
-              background: '#FEF3C7',
-              borderRadius: '8px',
-              fontSize: '12px',
-              color: '#92400E'
-            }}>
-              🛡️ <strong>No Fee Guarantee</strong> - You pay nothing. Ever.
-            </div>
-          </div>
-        </div>
+        <ExitPopup
+          results={results || getResults()}
+          onCTA={() => {
+            setShowExitPopup(false);
+            trackStep('exit_popup_clicked_cta');
+          }}
+          onDismiss={() => {
+            setShowExitPopup(false);
+            trackStep('exit_popup_dismissed');
+          }}
+        />
       )}
-
     </div>
   );
 }
