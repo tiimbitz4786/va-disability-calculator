@@ -28,16 +28,44 @@ export default function ResultsScreen({
   const fmtMoney = (val) => val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
-    <ScreenWrapper>
+    <>
+      {/* Team Photo Banner */}
+      <div style={{
+        width: '100%',
+        marginBottom: '0',
+        borderRadius: '20px 20px 0 0',
+        overflow: 'hidden',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+      }}>
+        <img
+          src="/team-photo1.jpg"
+          alt="Hiller Comerford Attorneys"
+          style={{ width: '100%', height: 'auto', display: 'block' }}
+        />
+      </div>
+
+      <div style={{
+        background: theme.white,
+        borderRadius: '0 0 20px 20px',
+        padding: '28px 24px',
+        boxShadow: '0 10px 40px rgba(93,58,142,0.15)',
+        marginTop: '0'
+      }}>
       {results.qualifiesForIncrease ? (
         <>
           {/* Big Money Hero */}
-          <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-            <div style={{ fontSize: '14px', color: theme.gray, marginBottom: '4px' }}>
-              {displayName}, you could be receiving an extra
-            </div>
+          <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+            <h2 style={{
+              fontSize: '22px',
+              fontWeight: '800',
+              color: theme.grayDark,
+              lineHeight: 1.3,
+              marginBottom: '12px'
+            }}>
+              {displayName}, You Could Be Receiving an Extra
+            </h2>
             <div style={{
-              fontSize: '48px',
+              fontSize: '52px',
               fontWeight: '900',
               color: theme.green,
               lineHeight: 1.1,
@@ -45,7 +73,11 @@ export default function ResultsScreen({
             }}>
               ${fmtMoney(results.monthlyIncrease)}
             </div>
-            <div style={{ fontSize: '16px', fontWeight: '600', color: theme.grayDark }}>
+            <div style={{
+              fontSize: '18px',
+              fontWeight: '700',
+              color: theme.grayDark
+            }}>
               every single month
             </div>
           </div>
@@ -346,6 +378,7 @@ export default function ResultsScreen({
           </div>
         </div>
       )}
-    </ScreenWrapper>
+      </div>
+    </>
   );
 }
