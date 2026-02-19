@@ -178,7 +178,7 @@ export default function VACalculator() {
     });
   };
 
-  const results = (step === 'results') ? getResults() : null;
+  const results = (step === 'results' || step === 'lead-gate') ? getResults() : null;
 
   // ─── Exit intent ───
   useEffect(() => {
@@ -264,7 +264,7 @@ export default function VACalculator() {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       trackStep('5_all_questions_completed');
-      goToStep('lead-gate');
+      goToStep('results');
     }
   };
 
@@ -359,7 +359,6 @@ export default function VACalculator() {
 
     setLeadSubmitted(true);
     setIsSubmitting(false);
-    goToStep('results');
   };
 
   // ─── Progress calculation ───
@@ -779,8 +778,8 @@ export default function VACalculator() {
               if (wants) {
                 goToStep('conditions');
               } else {
-                // Go straight to lead gate
-                goToStep('lead-gate');
+                // Go straight to results
+                goToStep('results');
               }
             }}
           />
@@ -846,7 +845,12 @@ export default function VACalculator() {
           <ResultsScreen
             results={results}
             leadInfo={leadInfo}
+            setLeadInfo={setLeadInfo}
             veteranFirstName={veteranFirstName}
+            isSubmitting={isSubmitting}
+            leadSubmitted={leadSubmitted}
+            onSubmit={submitLead}
+            testimonialIndex={testimonialIndex}
           />
         )}
 
