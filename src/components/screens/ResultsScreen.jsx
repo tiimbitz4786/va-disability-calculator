@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { theme } from '../../constants/theme';
 import { isValidEmail, isValidPhone } from '../../utils/validation';
 import ScreenWrapper from '../shared/ScreenWrapper';
@@ -25,104 +25,164 @@ export default function ResultsScreen({
     isValidEmail(leadInfo.email) &&
     !isSubmitting;
 
+  const fmtMoney = (val) => val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   return (
     <ScreenWrapper>
-      {/* Results Header */}
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <h2 style={{
-          fontSize: '22px',
-          fontWeight: '800',
-          color: theme.grayDark,
-          marginBottom: '8px',
-          lineHeight: 1.2
-        }}>
-          {displayName}, Here Are Your Results
-        </h2>
-        <p style={{ color: theme.gray, fontSize: '14px' }}>
-          Based on your answers, here's your estimated VA disability increase:
-        </p>
-      </div>
-
-      {/* Rating Increase */}
-      <div style={{
-        background: theme.greenLight,
-        borderRadius: '16px',
-        padding: '24px',
-        textAlign: 'center',
-        marginBottom: '16px'
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '16px',
-          marginBottom: '16px'
-        }}>
-          <div>
-            <div style={{ fontSize: '13px', color: theme.gray, marginBottom: '4px' }}>Current</div>
-            <div style={{ fontSize: '36px', fontWeight: '800', color: theme.gray }}>{results.currentRating}%</div>
+      {results.qualifiesForIncrease ? (
+        <>
+          {/* Big Money Hero */}
+          <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+            <div style={{ fontSize: '14px', color: theme.gray, marginBottom: '4px' }}>
+              {displayName}, you could be receiving an extra
+            </div>
+            <div style={{
+              fontSize: '48px',
+              fontWeight: '900',
+              color: theme.green,
+              lineHeight: 1.1,
+              marginBottom: '4px'
+            }}>
+              ${fmtMoney(results.monthlyIncrease)}
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: '600', color: theme.grayDark }}>
+              every single month
+            </div>
           </div>
-          <div style={{ fontSize: '28px', color: theme.green }}>→</div>
-          <div>
-            <div style={{ fontSize: '13px', color: theme.greenDark, marginBottom: '4px' }}>Projected</div>
-            <div style={{ fontSize: '36px', fontWeight: '800', color: theme.green }}>{results.projectedRating}%</div>
-          </div>
-        </div>
 
-        {results.qualifiesForIncrease ? (
+          {/* Rating Badge */}
           <div style={{
-            background: theme.white,
+            background: theme.greenLight,
             borderRadius: '12px',
-            padding: '16px',
+            padding: '14px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '14px',
+            marginBottom: '12px'
           }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div>
-                <div style={{ fontSize: '12px', color: theme.gray, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Monthly Increase</div>
-                <div style={{ fontSize: '28px', fontWeight: '800', color: theme.green }}>
-                  +${results.monthlyIncrease.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', color: theme.gray }}>Current Rating</div>
+              <div style={{ fontSize: '26px', fontWeight: '800', color: theme.gray }}>{results.currentRating}%</div>
+            </div>
+            <div style={{ fontSize: '24px', color: theme.green }}>→</div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', color: theme.greenDark, fontWeight: '600' }}>Your Potential Rating</div>
+              <div style={{ fontSize: '26px', fontWeight: '800', color: theme.green }}>{results.projectedRating}%</div>
+            </div>
+          </div>
+
+          {/* Stacked Dollar Amounts */}
+          <div style={{
+            display: 'flex',
+            gap: '10px',
+            marginBottom: '16px'
+          }}>
+            <div style={{
+              flex: 1,
+              background: '#F0FDF4',
+              borderRadius: '10px',
+              padding: '12px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '11px', color: theme.gray, marginBottom: '2px' }}>Per Year</div>
+              <div style={{ fontSize: '20px', fontWeight: '800', color: theme.grayDark }}>
+                ${fmtMoney(results.annualIncrease)}
               </div>
-              <div style={{ borderTop: `1px solid ${theme.grayLight}`, paddingTop: '12px', display: 'flex', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontSize: '11px', color: theme.gray }}>Annual</div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: theme.grayDark }}>
-                    +${results.annualIncrease.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '11px', color: theme.gray }}>5-Year Value</div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: theme.grayDark }}>
-                    +${results.fiveYearValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
-                </div>
+            </div>
+            <div style={{
+              flex: 1,
+              background: '#F0FDF4',
+              borderRadius: '10px',
+              padding: '12px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '11px', color: theme.gray, marginBottom: '2px' }}>Over 5 Years</div>
+              <div style={{ fontSize: '20px', fontWeight: '800', color: theme.grayDark }}>
+                ${fmtMoney(results.fiveYearValue)}
               </div>
             </div>
           </div>
-        ) : (
-          <div style={{ fontSize: '15px', color: theme.greenDark, lineHeight: 1.5 }}>
-            Based on your answers, we don't see a clear rating increase — but many factors can't be captured here. A free expert case review can uncover options the calculator can't.
+
+          {/* Urgency / Value Statement */}
+          <div style={{
+            background: '#FEF3C7',
+            borderRadius: '10px',
+            padding: '12px 16px',
+            marginBottom: '20px',
+            textAlign: 'center',
+            fontSize: '14px',
+            color: '#92400E',
+            lineHeight: 1.5,
+            fontWeight: '600'
+          }}>
+            Every month you wait is another ${fmtMoney(results.monthlyIncrease)} you're leaving on the table. Most veterans who qualify never file.
           </div>
-        )}
-      </div>
+        </>
+      ) : (
+        /* Non-qualifying flow */
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '20px'
+        }}>
+          <h2 style={{
+            fontSize: '22px',
+            fontWeight: '800',
+            color: theme.grayDark,
+            marginBottom: '8px'
+          }}>
+            {displayName}, Let's Take a Closer Look
+          </h2>
+          <div style={{
+            background: theme.greenLight,
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '16px'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '14px',
+              marginBottom: '12px'
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '11px', color: theme.gray }}>Current</div>
+                <div style={{ fontSize: '26px', fontWeight: '800', color: theme.gray }}>{results.currentRating}%</div>
+              </div>
+              <div style={{ fontSize: '24px', color: theme.green }}>→</div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '11px', color: theme.greenDark }}>Projected</div>
+                <div style={{ fontSize: '26px', fontWeight: '800', color: theme.green }}>{results.projectedRating}%</div>
+              </div>
+            </div>
+            <p style={{ fontSize: '14px', color: theme.greenDark, lineHeight: 1.5 }}>
+              Our calculator can only capture so much. Veterans often have conditions and secondary connections that don't show up here. Our attorneys regularly find increases the calculator misses.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Lead Form or Confirmation */}
       {!leadSubmitted ? (
         <div>
           <div style={{
             background: theme.white,
-            border: `2px solid ${theme.purple}`,
+            border: `2px solid ${theme.green}`,
             borderRadius: '16px',
             padding: '24px',
             marginBottom: '16px'
           }}>
             <h3 style={{
-              fontSize: '18px',
+              fontSize: '20px',
               fontWeight: '800',
               color: theme.grayDark,
               textAlign: 'center',
-              marginBottom: '6px'
+              marginBottom: '4px'
             }}>
-              Want Us to Fight for This Increase?
+              {results.qualifiesForIncrease
+                ? "Don't Leave This Money Unclaimed"
+                : "Get a Free Expert Case Review"}
             </h3>
             <p style={{
               fontSize: '14px',
@@ -131,8 +191,31 @@ export default function ResultsScreen({
               marginBottom: '16px',
               lineHeight: 1.5
             }}>
-              Get a free expert case review. We handle everything — you never pay a fee.
+              {results.qualifiesForIncrease
+                ? "Our VA disability attorneys will review your case, file your claim, and fight for your increase — you never pay a dime."
+                : "Our attorneys have helped thousands of veterans uncover benefits they didn't know they qualified for. Let us take a look — it's completely free."}
             </p>
+
+            {/* What You Get */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              marginBottom: '16px',
+              padding: '12px',
+              background: theme.grayLight,
+              borderRadius: '10px'
+            }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: theme.grayDark }}>
+                <span style={{ color: theme.green, fontWeight: '800' }}>+</span> Free case review by a VA disability attorney
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: theme.grayDark }}>
+                <span style={{ color: theme.green, fontWeight: '800' }}>+</span> We handle all the paperwork and filing
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: theme.grayDark }}>
+                <span style={{ color: theme.green, fontWeight: '800' }}>+</span> No fee — ever. If we win, the VA pays us
+              </div>
+            </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
               <input
@@ -207,7 +290,11 @@ export default function ResultsScreen({
                 cursor: !canSubmit ? 'not-allowed' : 'pointer'
               }}
             >
-              {isSubmitting ? 'Submitting...' : 'Get My Free Expert Case Review'}
+              {isSubmitting
+                ? 'Submitting...'
+                : results.qualifiesForIncrease
+                  ? 'Claim My Free Case Review'
+                  : 'Get My Free Case Review'}
             </button>
 
             <div style={{
@@ -217,7 +304,7 @@ export default function ResultsScreen({
               lineHeight: 1.5,
               textAlign: 'center'
             }}>
-              A VA disability expert will call you to discuss your case. There is never a fee to you.
+              A VA disability expert from our team will call you to discuss your case. No obligation. No fee. Ever.
             </div>
           </div>
 
