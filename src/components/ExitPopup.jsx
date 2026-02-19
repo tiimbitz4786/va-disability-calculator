@@ -117,7 +117,7 @@ export default function ExitPopup({ results, onCTA, onDismiss }) {
           fontSize: '12px',
           color: '#92400E'
         }}>
-          🛡️ <strong>No Fee Guarantee</strong> - You pay nothing. Ever.
+          🛡️ <strong>No Fee Guarantee</strong> — You never pay out of pocket.
         </div>
       </div>
     </div>

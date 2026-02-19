@@ -224,7 +224,7 @@ export default function ResultsScreen({
               lineHeight: 1.5
             }}>
               {results.qualifiesForIncrease
-                ? "Our VA disability attorneys will review your case, file your claim, and fight for your increase — you never pay a dime."
+                ? "Our VA disability attorneys will review your case, file your claim, and fight for your increase — you'll never pay anything out of pocket."
                 : "Our attorneys have helped thousands of veterans uncover benefits they didn't know they qualified for. Let us take a look — it's completely free."}
             </p>
 
@@ -245,7 +245,7 @@ export default function ResultsScreen({
                 <span style={{ color: theme.green, fontWeight: '800' }}>+</span> We handle all the paperwork and filing
               </div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: theme.grayDark }}>
-                <span style={{ color: theme.green, fontWeight: '800' }}>+</span> No fee — ever. If we win, the VA pays us
+                <span style={{ color: theme.green, fontWeight: '800' }}>+</span> No Fee Guarantee — you never pay out of pocket
               </div>
             </div>
 
@@ -336,7 +336,7 @@ export default function ResultsScreen({
               lineHeight: 1.5,
               textAlign: 'center'
             }}>
-              A VA disability expert from our team will call you to discuss your case. No obligation. No fee. Ever.
+              A VA disability expert from our team will call you to discuss your case. No obligation. No out-of-pocket cost.
             </div>
           </div>
 
@@ -368,7 +368,7 @@ export default function ResultsScreen({
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <span style={{ fontSize: '18px' }}>🛡️</span>
-              <span style={{ color: theme.greenDark, fontSize: '14px' }}>We handle everything — no fee, ever</span>
+              <span style={{ color: theme.greenDark, fontSize: '14px' }}>We handle everything — No Fee Guarantee</span>
             </div>
           </div>
           <div style={{ marginTop: '16px' }}>

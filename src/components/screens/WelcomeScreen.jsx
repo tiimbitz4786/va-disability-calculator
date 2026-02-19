@@ -77,7 +77,7 @@ export default function WelcomeScreen({ testimonialIndex, setTestimonialIndex, o
                 No Fee Guarantee
               </div>
               <div style={{ color: '#92400E', fontSize: '13px' }}>
-                You'll never owe us a penny. If we win, the VA pays us directly.
+                You'll never pay anything out of pocket.
               </div>
             </div>
           </div>

@@ -69,7 +69,7 @@ export default function HundredPercentScreen({ onStartOver }) {
         }}>
           <span style={{ fontSize: '18px' }}>🛡️</span>
           <span style={{ fontSize: '12px', color: '#92400E' }}>
-            <strong>No Fee Guarantee.</strong> You pay nothing. If we win, the VA pays us.
+            <strong>No Fee Guarantee.</strong> You never pay anything out of pocket.
           </span>
         </div>
 
