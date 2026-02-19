@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { theme } from '../../constants/theme';
 import { isValidEmail, isValidPhone } from '../../utils/validation';
 import ScreenWrapper from '../shared/ScreenWrapper';
@@ -26,6 +26,23 @@ export default function ResultsScreen({
     !isSubmitting;
 
   const fmtMoney = (val) => val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const formRef = useRef(null);
+  const [formVisible, setFormVisible] = useState(false);
+
+  useEffect(() => {
+    if (!formRef.current || leadSubmitted) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFormVisible(entry.isIntersecting),
+      { threshold: 0.2 }
+    );
+    observer.observe(formRef.current);
+    return () => observer.disconnect();
+  }, [leadSubmitted]);
+
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
 
   return (
     <>
@@ -197,7 +214,7 @@ export default function ResultsScreen({
 
       {/* Lead Form or Confirmation */}
       {!leadSubmitted ? (
-        <div>
+        <div ref={formRef}>
           <div style={{
             background: theme.white,
             border: `2px solid ${theme.green}`,
@@ -379,6 +396,41 @@ export default function ResultsScreen({
         </div>
       )}
       </div>
+
+      {/* Sticky CTA Button */}
+      {!leadSubmitted && !formVisible && (
+        <div style={{
+          position: 'fixed',
+          bottom: '0',
+          left: '0',
+          right: '0',
+          padding: '12px 16px',
+          paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+          background: 'linear-gradient(transparent, rgba(255,255,255,0.95) 20%)',
+          zIndex: 100
+        }}>
+          <button
+            onClick={scrollToForm}
+            style={{
+              width: '100%',
+              maxWidth: '500px',
+              margin: '0 auto',
+              display: 'block',
+              padding: '18px',
+              background: theme.green,
+              color: theme.white,
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '18px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.25)'
+            }}
+          >
+            Claim My Free Case Review
+          </button>
+        </div>
+      )}
     </>
   );
 }
