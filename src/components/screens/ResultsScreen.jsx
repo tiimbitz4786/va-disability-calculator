@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { theme } from '../../constants/theme';
 import { isValidEmail, isValidPhone } from '../../utils/validation';
 import ScreenWrapper from '../shared/ScreenWrapper';
@@ -386,8 +387,8 @@ export default function ResultsScreen({
       )}
       </div>
 
-      {/* Sticky CTA Button */}
-      {!leadSubmitted && (
+      {/* Sticky CTA Button — rendered via portal to escape stacking context */}
+      {!leadSubmitted && createPortal(
         <div style={{
           position: 'fixed',
           bottom: '0',
@@ -396,7 +397,7 @@ export default function ResultsScreen({
           padding: '12px 16px',
           paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
           background: 'linear-gradient(transparent, rgba(255,255,255,0.95) 20%)',
-          zIndex: 100
+          zIndex: 9999
         }}>
           <button
             onClick={scrollToForm}
@@ -418,7 +419,8 @@ export default function ResultsScreen({
           >
             Claim My Free Case Review
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
