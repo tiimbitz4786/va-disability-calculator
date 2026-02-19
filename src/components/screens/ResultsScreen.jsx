@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { theme } from '../../constants/theme';
 import { isValidEmail, isValidPhone } from '../../utils/validation';
 import ScreenWrapper from '../shared/ScreenWrapper';
@@ -28,17 +28,6 @@ export default function ResultsScreen({
   const fmtMoney = (val) => val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const formRef = useRef(null);
-  const [formVisible, setFormVisible] = useState(false);
-
-  useEffect(() => {
-    if (!formRef.current || leadSubmitted) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setFormVisible(entry.isIntersecting),
-      { threshold: 0.2 }
-    );
-    observer.observe(formRef.current);
-    return () => observer.disconnect();
-  }, [leadSubmitted]);
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -398,7 +387,7 @@ export default function ResultsScreen({
       </div>
 
       {/* Sticky CTA Button */}
-      {!leadSubmitted && !formVisible && (
+      {!leadSubmitted && (
         <div style={{
           position: 'fixed',
           bottom: '0',
